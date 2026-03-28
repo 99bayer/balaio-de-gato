@@ -221,12 +221,25 @@ async function carregar(){
   try {
     const r = await fetch('/api/moveis');
     const data = await r.json();
-    todos = data.moveis;
+    if(data.erro) console.error('API erro:', data.erro);
+    todos = data.moveis || [];
     atualizarStats();
     renderGrid(todos);
   } catch(e){
-    document.getElementById('grid').innerHTML =
-      '<div class="empty"><div class="empty-ico">⚠️</div><h3>Erro ao carregar</h3><p>Tente recarregar a página</p></div>';
+    console.error('Erro ao carregar móveis:', e);
+    // Tentar novamente em 3s (caso servidor ainda esteja iniciando)
+    setTimeout(async()=>{
+      try{
+        const r2 = await fetch('/api/moveis');
+        const data2 = await r2.json();
+        todos = data2.moveis || [];
+        atualizarStats();
+        renderGrid(todos);
+      } catch(e2){
+        document.getElementById('grid').innerHTML =
+          '<div class="empty"><div class="empty-ico">⚠️</div><h3>Erro ao carregar</h3><p>Tente recarregar a página</p></div>';
+      }
+    }, 3000);
   }
 }
 
