@@ -392,6 +392,100 @@ def admin_atualizar_status(numero):
     return jsonify({"ok": True})
 
 
+# ── MODEL MÓVEIS ────────────────────────────────────────────────────────────
+class Movel(db.Model):
+    id          = db.Column(db.Integer, primary_key=True)
+    nome        = db.Column(db.String(150), nullable=False)
+    descricao   = db.Column(db.Text, nullable=True)
+    preco       = db.Column(db.Float, nullable=False)
+    condicao    = db.Column(db.String(10), default="usado")  # novo/usado
+    foto_base64 = db.Column(db.Text, nullable=True)
+    vendido     = db.Column(db.Boolean, default=False)
+    criado_em   = db.Column(db.DateTime, default=datetime.utcnow)
+
+# ── CATÁLOGO PÚBLICO ────────────────────────────────────────────────────────
+@app.route("/moveis")
+def catalogo_moveis():
+    return send_from_directory("static", "moveis.html")
+
+@app.route("/api/moveis")
+def api_moveis():
+    condicao = request.args.get("condicao", "")
+    q = Movel.query.filter_by(vendido=False).order_by(Movel.criado_em.desc())
+    if condicao in ("novo", "usado"):
+        q = q.filter_by(condicao=condicao)
+    moveis = []
+    for m in q.all():
+        moveis.append({
+            "id": m.id,
+            "nome": m.nome,
+            "descricao": m.descricao or "",
+            "preco": m.preco,
+            "condicao": m.condicao,
+            "foto": m.foto_base64 or "",
+            "criado_em": m.criado_em.strftime("%d/%m/%Y") if m.criado_em else "",
+        })
+    return jsonify({"moveis": moveis, "total": len(moveis)})
+
+# ── ADMIN MÓVEIS ─────────────────────────────────────────────────────────────
+@app.route("/api/admin/moveis", methods=["GET"])
+def admin_moveis_list():
+    from flask import session
+    if not session.get("admin"):
+        return jsonify({"erro": "não autorizado"}), 401
+    moveis = Movel.query.order_by(Movel.criado_em.desc()).all()
+    return jsonify({"moveis": [{
+        "id": m.id, "nome": m.nome, "preco": m.preco,
+        "condicao": m.condicao, "vendido": m.vendido,
+        "criado_em": m.criado_em.strftime("%d/%m/%Y") if m.criado_em else "",
+    } for m in moveis]})
+
+@app.route("/api/admin/moveis", methods=["POST"])
+def admin_movel_criar():
+    from flask import session
+    if not session.get("admin"):
+        return jsonify({"erro": "não autorizado"}), 401
+    data = request.get_json() or {}
+    if not data.get("nome") or not data.get("preco"):
+        return jsonify({"erro": "nome e preco obrigatórios"}), 400
+    m = Movel(
+        nome      = data["nome"].strip(),
+        descricao = data.get("descricao","").strip(),
+        preco     = float(data["preco"]),
+        condicao  = data.get("condicao","usado"),
+        foto_base64 = data.get("foto",""),
+    )
+    db.session.add(m)
+    db.session.commit()
+    return jsonify({"ok": True, "id": m.id})
+
+@app.route("/api/admin/moveis/<int:mid>", methods=["POST"])
+def admin_movel_editar(mid):
+    from flask import session
+    if not session.get("admin"):
+        return jsonify({"erro": "não autorizado"}), 401
+    m = Movel.query.get_or_404(mid)
+    data = request.get_json() or {}
+    if "nome"      in data: m.nome      = data["nome"].strip()
+    if "descricao" in data: m.descricao = data["descricao"].strip()
+    if "preco"     in data: m.preco     = float(data["preco"])
+    if "condicao"  in data: m.condicao  = data["condicao"]
+    if "vendido"   in data: m.vendido   = bool(data["vendido"])
+    if "foto"      in data: m.foto_base64 = data["foto"]
+    db.session.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/admin/moveis/<int:mid>", methods=["DELETE"])
+def admin_movel_deletar(mid):
+    from flask import session
+    if not session.get("admin"):
+        return jsonify({"erro": "não autorizado"}), 401
+    m = Movel.query.get_or_404(mid)
+    db.session.delete(m)
+    db.session.commit()
+    return jsonify({"ok": True})
+
+
 # ── Init ────────────────────────────────────────────────────────────────────
 with app.app_context():
     db.create_all()
