@@ -56,6 +56,7 @@ class Pedido(db.Model):
     mp_pref_id   = db.Column(db.String(100))
     mp_payment_id= db.Column(db.String(100))
     total        = db.Column(db.Float)
+    tinta        = db.Column(db.Boolean, default=False)
     criado_em    = db.Column(db.DateTime, default=datetime.utcnow)
 
 # ── Página principal ────────────────────────────────────────────────────────
@@ -100,6 +101,7 @@ def criar_pedido():
         end_bairro   = data.get("end_bairro",""),
         end_cidade   = data.get("end_cidade"),
         pagamento    = data.get("pagamento","pix"),
+        tinta        = bool(data.get("tinta", False)),
         total        = total,
     )
     db.session.add(pedido)
@@ -308,6 +310,87 @@ def _enviar_email(dest, subject, html):
             s.sendmail(GMAIL_USER, dest, msg.as_string())
     except Exception as e:
         print(f"Erro e-mail: {e}")
+
+# ── ADMIN ───────────────────────────────────────────────────────────────────
+@app.route("/admin")
+def admin_login_page():
+    return send_from_directory("static", "admin.html")
+
+@app.route("/admin/login", methods=["POST"])
+def admin_login():
+    data = request.get_json() or {}
+    admin_key = os.environ.get("ADMIN_KEY","")
+    if not admin_key or data.get("senha") != admin_key:
+        return jsonify({"erro":"Senha incorreta"}), 401
+    from flask import session
+    session["admin"] = True
+    return jsonify({"ok": True})
+
+@app.route("/admin/logout", methods=["POST"])
+def admin_logout():
+    from flask import session
+    session.pop("admin", None)
+    return jsonify({"ok": True})
+
+@app.route("/api/admin/pedidos")
+def admin_pedidos():
+    from flask import session
+    if not session.get("admin"):
+        return jsonify({"erro":"não autorizado"}), 401
+    
+    status_filtro = request.args.get("status","")
+    q = Pedido.query.order_by(Pedido.criado_em.desc())
+    if status_filtro:
+        q = q.filter_by(status=status_filtro)
+    
+    pedidos = []
+    for p in q.limit(100).all():
+        textos = json.loads(p.textos or "[]")
+        pedidos.append({
+            "id": p.id,
+            "numero": p.numero,
+            "status": p.status,
+            "tamanho": p.tamanho,
+            "categoria": p.categoria,
+            "textos": textos,
+            "tinta": getattr(p, 'tinta', False),
+            "end_nome": p.end_nome,
+            "end_email": p.end_email,
+            "end_tel": p.end_tel,
+            "end_cep": p.end_cep,
+            "end_rua": p.end_rua,
+            "end_comp": p.end_comp,
+            "end_bairro": p.end_bairro,
+            "end_cidade": p.end_cidade,
+            "frete_nome": p.frete_nome,
+            "frete_preco": p.frete_preco,
+            "total": p.total,
+            "pagamento": p.pagamento,
+            "criado_em": p.criado_em.strftime("%d/%m/%Y %H:%M") if p.criado_em else "",
+        })
+    
+    resumo = {
+        "total": Pedido.query.count(),
+        "pagos": Pedido.query.filter_by(status="pago").count(),
+        "pendentes": Pedido.query.filter_by(status="pendente").count(),
+        "faturamento": sum(p.total or 0 for p in Pedido.query.filter_by(status="pago").all()),
+    }
+    
+    return jsonify({"pedidos": pedidos, "resumo": resumo})
+
+@app.route("/api/admin/pedido/<numero>/status", methods=["POST"])
+def admin_atualizar_status(numero):
+    from flask import session
+    if not session.get("admin"):
+        return jsonify({"erro":"não autorizado"}), 401
+    data = request.get_json() or {}
+    p = Pedido.query.filter_by(numero=numero).first()
+    if not p:
+        return jsonify({"erro":"não encontrado"}), 404
+    p.status = data.get("status", p.status)
+    db.session.commit()
+    return jsonify({"ok": True})
+
 
 # ── Init ────────────────────────────────────────────────────────────────────
 with app.app_context():
