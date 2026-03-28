@@ -503,6 +503,33 @@ body::before{
       </div>
     </div>
 
+    <!-- Adicionar Tinta -->
+    <div style="margin-bottom:16px">
+      <div class="form-label" style="margin-bottom:10px">Adicionar ao pedido</div>
+      <div id="tinhaCard" onclick="toggleTinta()"
+        style="display:flex;align-items:center;gap:14px;padding:14px 16px;
+          border-radius:14px;border:2px solid #2A2A2A;background:#1A1A1A;
+          cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent">
+        <div style="width:42px;height:42px;border-radius:10px;background:#111;
+          display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">
+          🖋️
+        </div>
+        <div style="flex:1">
+          <div style="font-size:.9rem;font-weight:700;color:#F5F0E0">Tinta para Carimbo</div>
+          <div style="font-size:.75rem;color:#7A6A55;margin-top:2px">
+            Tinta PRÓPRIA para carimbos — recomendada para melhor resultado
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:.95rem;font-weight:700;color:#C0392B">+ R$ 28,00</div>
+          <div id="tinhaCheck" style="width:22px;height:22px;border-radius:50%;
+            border:2px solid #333;margin:6px auto 0;display:flex;align-items:center;
+            justify-content:center;font-size:.7rem;transition:all .2s">
+          </div>
+        </div>
+      </div>
+    </div>
+
     <button class="btn btn-primary" onclick="irParaEntrega()">
       Continuar — Dados de entrega →
     </button>
@@ -587,6 +614,10 @@ body::before{
     <div class="resumo-linha">
       <span id="resumoNomeProd">Carimbo</span>
       <span id="resumoProd">—</span>
+    </div>
+    <div class="resumo-linha" id="resumoTintaLinha" style="display:none">
+      <span>🖋️ Tinta para Carimbo</span>
+      <span>R$ 28,00</span>
     </div>
     <div class="resumo-linha">
       <span id="resumoNomeFrete">Frete</span>
@@ -680,6 +711,7 @@ body::before{
 <script>
 // ══ ESTADO ══════════════════════════════════════════════════════════════════
 const state = {
+  tinta: false,
   tamanho: null, categoria: null, linhasMax: 2,
   preco: 0, layout: 'modelo',
   textos: [],
@@ -746,6 +778,27 @@ function getCamposLivres(cat, linhasMax) {
     });
   }
   return campos;
+}
+
+// ══ TINTA ════════════════════════════════════════════════════════════════════
+function toggleTinta(){
+  state.tinta = !state.tinta;
+  const card  = document.getElementById('tinhaCard');
+  const check = document.getElementById('tinhaCheck');
+  if(state.tinta){
+    card.style.borderColor  = '#C9922A';
+    card.style.background   = '#221800';
+    check.style.background  = '#C9922A';
+    check.style.borderColor = '#C9922A';
+    check.style.color       = '#000';
+    check.textContent       = '✓';
+  } else {
+    card.style.borderColor  = '#2A2A2A';
+    card.style.background   = '#1A1A1A';
+    check.style.background  = 'transparent';
+    check.style.borderColor = '#333';
+    check.textContent       = '';
+  }
 }
 
 // ══ SELECIONAR TAMANHO ══════════════════════════════════════════════════════
@@ -1010,9 +1063,16 @@ function irParaPagamento() {
       Carimbo ${state.tamanho}mm</div>` +
     textos.map(t=>`<div>${t}</div>`).join('');
 
+  // Mostrar tinta no resumo se selecionada
+  document.getElementById('resumoTintaLinha').style.display = state.tinta ? 'flex' : 'none';
+
   document.getElementById('resumoNomeProd').textContent =
     `Carimbo ${state.tamanho}mm`;
   document.getElementById('resumoProd').textContent = brl(state.preco);
+  // Linha tinta no resumo
+  const totalProd = state.preco + (state.tinta ? 28 : 0);
+  document.getElementById('resumoProd').textContent = 'R$ ' + totalProd.toFixed(2).replace('.',',');
+
   document.getElementById('resumoNomeFrete').textContent = state.freteNome;
   document.getElementById('resumoFrete').textContent =
     state.fretePreco===0 ? 'Grátis' : brl(state.fretePreco);
@@ -1053,7 +1113,8 @@ async function confirmarPedido(){
     categoria:   state.categoria,
     layout:      state.layout,
     textos:      textos,
-    preco_prod:  state.preco,
+    preco_prod:  state.preco + (state.tinta ? 28 : 0),
+    tinta:       state.tinta,
     frete_nome:  state.freteNome,
     frete_preco: state.fretePreco,
     end_nome:    state.endereco.nome,
