@@ -1241,38 +1241,22 @@ async function confirmarPedido(btn){
     total:       total,
   };
 
-  const enviar = async () => {
-    const resp=await fetch('/api/pedido',{
+  try{
+    const resp = await fetch('/api/pedido',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload),
     });
-    return resp.json();
-  };
-
-  try{
-    const data=await enviar();
-    if(data.ok&&data.checkout_url){
-      window.location.href=data.checkout_url;
+    const data = await resp.json();
+    if(data.ok && data.checkout_url){
+      window.location.href = data.checkout_url;
     } else {
       showToast('Erro ao processar pedido. Tente novamente.');
-      btn.disabled=false;btn.textContent='🔒 Pagar com Mercado Pago';
+      btn.disabled=false; btn.textContent='🔒 Pagar com Mercado Pago';
     }
-  }catch(e){
-    // Render hibernando — countdown e retry
-    let s=40;
-    const iv=setInterval(()=>{s--;btn.textContent=`Conectando... (${s}s)`;},1000);
-    setTimeout(async()=>{
-      clearInterval(iv);
-      try{
-        const data2=await enviar();
-        if(data2.ok&&data2.checkout_url) window.location.href=data2.checkout_url;
-        else{showToast('Tente novamente.');btn.disabled=false;btn.textContent='🔒 Pagar com Mercado Pago';}
-      }catch(e2){
-        showToast('Servidor indisponível. Aguarde 1 minuto e tente novamente.');
-        btn.disabled=false;btn.textContent='🔒 Pagar com Mercado Pago';
-      }
-    },40000);
+  } catch(e){
+    showToast('Erro de conexão. Verifique sua internet e tente novamente.');
+    btn.disabled=false; btn.textContent='🔒 Pagar com Mercado Pago';
   }
 }
 
