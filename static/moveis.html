@@ -212,7 +212,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 </div>
 
 <script>
-const WP = '5543343234325';
+const WP = '554334323425';
 const WP_NOME = 'Balaio de Gato';
 let filtroAtual = '';
 let todos = [];
@@ -257,15 +257,22 @@ function renderGrid(lista){
     </div>`;
     return;
   }
-  grid.innerHTML = lista.map(m=>`
+  grid.innerHTML = lista.map(m=>{
+    const fotos = (m.fotos && m.fotos.length) ? m.fotos : (m.foto ? [m.foto] : []);
+    const fotosData = JSON.stringify(fotos).replace(/'/g,"&#39;");
+    return `
     <div class="card">
-      <div class="card-img">
-        ${m.foto
-          ? `<img src="${m.foto}" alt="${m.nome}" loading="lazy">`
+      <div class="card-img" data-fotos='${fotosData}' data-cur="0"
+        onclick="abrirLightbox(this)" style="cursor:${fotos.length?'zoom-in':'default'}">
+        ${fotos.length
+          ? `<img src="${fotos[0]}" alt="${m.nome}" loading="lazy">`
           : `<div class="card-img-placeholder">🛋️</div>`}
         <div class="card-badge ${m.condicao==='novo'?'badge-novo':'badge-usado'}">
           ${m.condicao==='novo'?'Novo':'Usado'}
         </div>
+        ${fotos.length>1?`<div style="position:absolute;top:8px;right:8px;
+          background:rgba(0,0,0,.65);color:#fff;border-radius:20px;
+          padding:3px 8px;font-size:.68rem;font-weight:700">📷 ${fotos.length}</div>`:''}
       </div>
       <div class="card-body">
         <div class="card-nome">${m.nome}</div>
@@ -277,8 +284,9 @@ function renderGrid(lista){
           Tenho interesse
         </a>
       </div>
-    </div>`).join('');
-}
+    </div>`;
+  }).join('');
+
 
 function wpLink(m){
   const txt = encodeURIComponent(
@@ -287,7 +295,59 @@ function wpLink(m){
   return `https://wa.me/${WP}?text=${txt}`;
 }
 
+
+// ── LIGHTBOX ─────────────────────────────────────────────────────────────────
+let lbFotos = [], lbIdx = 0;
+
+function abrirLightbox(el){
+  lbFotos = JSON.parse(el.dataset.fotos || '[]');
+  if(!lbFotos.length) return;
+  lbIdx = parseInt(el.dataset.cur || 0);
+  mostrarLightbox();
+  document.getElementById('lightbox').classList.add('open');
+  document.addEventListener('keydown', lbTecla);
+}
+
+function mostrarLightbox(){
+  document.getElementById('lightboxImg').src = lbFotos[lbIdx];
+  document.getElementById('lightboxCounter').textContent =
+    lbFotos.length > 1 ? `${lbIdx+1} / ${lbFotos.length}` : '';
+  const prev = document.querySelector('.lightbox-prev');
+  const next = document.querySelector('.lightbox-next');
+  prev.style.display = lbFotos.length > 1 ? 'flex' : 'none';
+  next.style.display = lbFotos.length > 1 ? 'flex' : 'none';
+}
+
+function navLightbox(dir, e){
+  if(e) e.stopPropagation();
+  lbIdx = (lbIdx + dir + lbFotos.length) % lbFotos.length;
+  mostrarLightbox();
+}
+
+function fecharLightbox(e){
+  if(e && e.target !== document.getElementById('lightbox') &&
+     !e.target.classList.contains('lightbox-close')) return;
+  document.getElementById('lightbox').classList.remove('open');
+  document.removeEventListener('keydown', lbTecla);
+}
+
+function lbTecla(e){
+  if(e.key==='ArrowRight') navLightbox(1);
+  else if(e.key==='ArrowLeft') navLightbox(-1);
+  else if(e.key==='Escape') fecharLightbox({target:document.getElementById('lightbox')});
+}
+
 carregar();
 </script>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="fecharLightbox(event)">
+  <img class="lightbox-img" id="lightboxImg" src="" alt="">
+  <button class="lightbox-nav lightbox-prev" onclick="navLightbox(-1,event)">‹</button>
+  <button class="lightbox-nav lightbox-next" onclick="navLightbox(1,event)">›</button>
+  <button class="lightbox-close" onclick="fecharLightbox()">✕</button>
+  <div class="lightbox-counter" id="lightboxCounter"></div>
+</div>
+
 </body>
 </html>
