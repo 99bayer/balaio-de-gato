@@ -120,6 +120,7 @@ def criar_pedido():
         end_bairro  = data.get("end_bairro",""),
         end_cidade  = data.get("end_cidade"),
         pagamento   = data.get("pagamento","mercadopago"),
+        status      = "aguardando_pagamento",
         tinta       = tinta,
         total       = total,
     )
@@ -225,12 +226,11 @@ def webhook_mp():
             pedido.status = "pago"
             db.session.commit()
             enviar_emails(pedido)
-        elif status in ("rejected","cancelled"):
+        elif status in ("rejected", "cancelled"):
             pedido.status = "cancelado"
             db.session.commit()
-        else:
-            pedido.status = "pendente"
-            db.session.commit()
+        # Qualquer outro status (pending, in_process, etc.)
+        # mantém como aguardando_pagamento — não aparece no admin
 
     except Exception as e:
         print(f"Webhook MP erro: {e}")
@@ -364,7 +364,7 @@ def admin_pedidos():
         return jsonify({"erro":"não autorizado"}), 401
     
     status_filtro = request.args.get("status","")
-    q = Pedido.query.order_by(Pedido.criado_em.desc())
+    q = Pedido.query.filter(Pedido.status != "aguardando_pagamento").order_by(Pedido.criado_em.desc())
     if status_filtro:
         q = q.filter_by(status=status_filtro)
     
@@ -396,9 +396,11 @@ def admin_pedidos():
         })
     
     resumo = {
-        "total": Pedido.query.count(),
+        "total": Pedido.query.filter(Pedido.status != "aguardando_pagamento").count(),
         "pagos": Pedido.query.filter_by(status="pago").count(),
-        "pendentes": Pedido.query.filter_by(status="pendente").count(),
+        "pendentes": Pedido.query.filter(
+            Pedido.status.notin_(["aguardando_pagamento","pago","cancelado","finalizado"])
+        ).count(),
         "faturamento": sum(p.total or 0 for p in Pedido.query.filter_by(status="pago").all()),
     }
     
@@ -553,26 +555,33 @@ def admin_movel_deletar(mid):
 # ── Init ────────────────────────────────────────────────────────────────────
 with app.app_context():
     db.create_all()
-    # ── Migration: adicionar colunas novas com IF NOT EXISTS ─────────────
+    # ── Migration: adicionar colunas novas ────────────────────────────────
     try:
         from sqlalchemy import text
+        migrações = [
+            ("movel",  "fotos_json",        "ALTER TABLE movel ADD COLUMN fotos_json TEXT"),
+            ("movel",  "vendido",            "ALTER TABLE movel ADD COLUMN vendido BOOLEAN DEFAULT FALSE"),
+            ("pedido", "whatsapp_cliente",   "ALTER TABLE pedido ADD COLUMN whatsapp_cliente VARCHAR(20)"),
+            ("pedido", "itens_json",         "ALTER TABLE pedido ADD COLUMN itens_json TEXT"),
+            ("pedido", "tinta",              "ALTER TABLE pedido ADD COLUMN tinta BOOLEAN DEFAULT FALSE"),
+        ]
         with db.engine.connect() as conn:
-            # pg8000 não suporta inspect() — usar ADD COLUMN IF NOT EXISTS direto
-            for sql in [
-                "ALTER TABLE movel ADD COLUMN IF NOT EXISTS fotos_json TEXT",
-                "ALTER TABLE movel ADD COLUMN IF NOT EXISTS vendido BOOLEAN DEFAULT FALSE",
-                "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS whatsapp_cliente VARCHAR(20)",
-                "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS itens_json TEXT",
-                "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS tinta BOOLEAN DEFAULT FALSE",
-            ]:
+            for tabela, coluna, sql in migrações:
                 try:
-                    conn.execute(text(sql))
-                except Exception:
-                    pass
-            conn.commit()
-        print("Migration OK")
+                    # Verificar se coluna existe via information_schema
+                    existe = conn.execute(text(
+                        "SELECT COUNT(*) FROM information_schema.columns "
+                        f"WHERE table_name='{tabela}' AND column_name='{coluna}'"
+                    )).scalar()
+                    if not existe:
+                        conn.execute(text(sql))
+                        conn.commit()
+                        print(f"Migration: {tabela}.{coluna} criada")
+                except Exception as e_col:
+                    print(f"Migration skip {tabela}.{coluna}: {e_col}")
+        print("Migration concluída")
     except Exception as e:
-        print(f"Migration erro: {e}")
+        print(f"Migration erro geral: {e}")
 
 if __name__ == "__main__":
     app.run(debug=True, port=5002)
