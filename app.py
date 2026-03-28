@@ -409,8 +409,12 @@ def admin_atualizar_status(numero):
     p = Pedido.query.filter_by(numero=numero).first()
     if not p:
         return jsonify({"erro":"não encontrado"}), 404
-    p.status = data.get("status", p.status)
-    db.session.commit()
+    novo_status = data.get("status", p.status)
+    # Status válidos para carimbos
+    validos = ["novo","confeccao","enviado","finalizado","cancelado","pago","pendente"]
+    if novo_status in validos:
+        p.status = novo_status
+        db.session.commit()
     return jsonify({"ok": True})
 
 
@@ -421,7 +425,7 @@ class Movel(db.Model):
     descricao   = db.Column(db.Text, nullable=True)
     preco       = db.Column(db.Float, nullable=False)
     condicao    = db.Column(db.String(10), default="usado")  # novo/usado
-    foto_base64 = db.Column(db.Text, nullable=True)
+    fotos_json  = db.Column(db.Text, nullable=True)  # JSON array de base64
     vendido     = db.Column(db.Boolean, default=False)
     criado_em   = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -438,13 +442,15 @@ def api_moveis():
         q = q.filter_by(condicao=condicao)
     moveis = []
     for m in q.all():
+        fotos = json.loads(m.fotos_json or "[]")
         moveis.append({
             "id": m.id,
             "nome": m.nome,
             "descricao": m.descricao or "",
             "preco": m.preco,
             "condicao": m.condicao,
-            "foto": m.foto_base64 or "",
+            "fotos": fotos,
+            "foto": fotos[0] if fotos else "",
             "criado_em": m.criado_em.strftime("%d/%m/%Y") if m.criado_em else "",
         })
     return jsonify({"moveis": moveis, "total": len(moveis)})
@@ -459,6 +465,7 @@ def admin_moveis_list():
     return jsonify({"moveis": [{
         "id": m.id, "nome": m.nome, "preco": m.preco,
         "condicao": m.condicao, "vendido": m.vendido,
+        "fotos": json.loads(m.fotos_json or "[]"),
         "criado_em": m.criado_em.strftime("%d/%m/%Y") if m.criado_em else "",
     } for m in moveis]})
 
@@ -470,12 +477,15 @@ def admin_movel_criar():
     data = request.get_json() or {}
     if not data.get("nome") or not data.get("preco"):
         return jsonify({"erro": "nome e preco obrigatórios"}), 400
+    fotos = data.get("fotos", [])
+    if data.get("foto") and not fotos:
+        fotos = [data["foto"]]
     m = Movel(
         nome      = data["nome"].strip(),
         descricao = data.get("descricao","").strip(),
         preco     = float(data["preco"]),
         condicao  = data.get("condicao","usado"),
-        foto_base64 = data.get("foto",""),
+        fotos_json = json.dumps(fotos, ensure_ascii=False),
     )
     db.session.add(m)
     db.session.commit()
@@ -493,7 +503,7 @@ def admin_movel_editar(mid):
     if "preco"     in data: m.preco     = float(data["preco"])
     if "condicao"  in data: m.condicao  = data["condicao"]
     if "vendido"   in data: m.vendido   = bool(data["vendido"])
-    if "foto"      in data: m.foto_base64 = data["foto"]
+    if "fotos"     in data: m.fotos_json  = json.dumps(data["fotos"], ensure_ascii=False)
     db.session.commit()
     return jsonify({"ok": True})
 
