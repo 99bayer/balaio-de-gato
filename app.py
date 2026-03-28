@@ -521,6 +521,36 @@ def admin_movel_deletar(mid):
 # ── Init ────────────────────────────────────────────────────────────────────
 with app.app_context():
     db.create_all()
+    # ── Migration: garantir colunas novas existam ──────────────────────────
+    try:
+        from sqlalchemy import text, inspect
+        inspector = inspect(db.engine)
+        # Movel: fotos_json
+        movel_cols = [col['name'] for col in inspector.get_columns('movel')]
+        if 'fotos_json' not in movel_cols:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE movel ADD COLUMN fotos_json TEXT"))
+                conn.commit()
+        if 'foto_base64' in movel_cols and 'fotos_json' in movel_cols:
+            with db.engine.connect() as conn:
+                # Migrar foto_base64 → fotos_json se necessário
+                conn.execute(text("""
+                    UPDATE movel SET fotos_json = '[' || '"' || foto_base64 || '"' || ']'
+                    WHERE foto_base64 IS NOT NULL AND foto_base64 != ''
+                    AND (fotos_json IS NULL OR fotos_json = '' OR fotos_json = '[]')
+                """))
+                conn.commit()
+        # Pedido: whatsapp_cliente, itens_json
+        pedido_cols = [col['name'] for col in inspector.get_columns('pedido')]
+        with db.engine.connect() as conn:
+            if 'whatsapp_cliente' not in pedido_cols:
+                conn.execute(text("ALTER TABLE pedido ADD COLUMN whatsapp_cliente VARCHAR(20)"))
+                conn.commit()
+            if 'itens_json' not in pedido_cols:
+                conn.execute(text("ALTER TABLE pedido ADD COLUMN itens_json TEXT"))
+                conn.commit()
+    except Exception as e:
+        print(f"Migration info: {e}")
 
 if __name__ == "__main__":
     app.run(debug=True, port=5002)
