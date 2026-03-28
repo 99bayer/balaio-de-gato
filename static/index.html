@@ -677,7 +677,7 @@ body::before{
 
     <div class="btn-nav" style="margin-top:16px">
       <button class="btn btn-outline" onclick="irPara(2)">← Voltar</button>
-      <button class="btn btn-stamp" onclick="confirmarPedido()">
+      <button class="btn btn-stamp" id="btnConfirmar" onclick="confirmarPedido(this)">
         ✓ Confirmar pedido
       </button>
     </div>
@@ -1101,8 +1101,8 @@ function copiarPix(){
 }
 
 // ══ CONFIRMAR PEDIDO — MERCADO PAGO ════════════════════════════════════════
-async function confirmarPedido(){
-  const btn = event.target;
+async function confirmarPedido(btn){
+  if(!btn) btn = document.getElementById('btnConfirmar');
   btn.disabled = true;
   btn.textContent = 'Processando...';
 
@@ -1146,8 +1146,28 @@ async function confirmarPedido(){
     window.location.href = data.checkout_url;
 
   } catch(e) {
-    showToast('Erro de conexão. Tente novamente.');
-    btn.disabled=false; btn.textContent='✓ Confirmar pedido';
+    console.error('Erro:', e);
+    // Render pode estar acordando do sleep (plano free) — tentar novamente
+    btn.textContent = 'Aguarde, conectando...';
+    setTimeout(async () => {
+      try {
+        const resp2 = await fetch('/api/pedido', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(payload),
+        });
+        const data2 = await resp2.json();
+        if(data2.ok && data2.checkout_url){
+          window.location.href = data2.checkout_url;
+        } else {
+          showToast('Erro ao processar. Verifique os dados e tente novamente.');
+          btn.disabled=false; btn.textContent='✓ Confirmar pedido';
+        }
+      } catch(e2) {
+        showToast('Servidor indisponível. Aguarde 30 segundos e tente novamente.');
+        btn.disabled=false; btn.textContent='✓ Confirmar pedido';
+      }
+    }, 8000);
   }
 }
 
