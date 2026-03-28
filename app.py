@@ -1,3 +1,9 @@
+try:
+    from psycopg2cffi import compat
+    compat.register()
+except ImportError:
+    pass
+
 from flask import Flask, request, jsonify, send_from_directory, render_template_string
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
