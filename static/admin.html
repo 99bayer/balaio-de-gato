@@ -173,7 +173,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="top-bar">
     <div class="top-logo">🐱 Balaio de Gato — Admin</div>
     <div class="top-right">
-      <button class="top-btn" onclick="carregarPedidos()">↻ Atualizar</button>
+      <button class="top-btn" id="btn-aba-pedidos" onclick="mostrarAba('pedidos')" style="color:var(--ink);border-color:var(--ink)">📋 Pedidos</button>
+      <button class="top-btn" id="btn-aba-moveis" onclick="mostrarAba('moveis')">🛋️ Móveis</button>
+      <button class="top-btn" onclick="window.open('/moveis','_blank')">Ver catálogo</button>
+      <button class="top-btn" onclick="carregarAtual()">↻ Atualizar</button>
       <button class="top-btn" onclick="sair()">Sair</button>
     </div>
   </div>
@@ -421,6 +424,144 @@ function showToast(msg){
   t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2500);
 }
+
+// ── ABAS ────────────────────────────────────────────────────────────────────
+let abaAtual = 'pedidos';
+
+function mostrarAba(aba){
+  abaAtual = aba;
+  document.getElementById('aba-moveis').style.display = aba==='moveis' ? 'block' : 'none';
+  document.querySelector('.shell').style.display = aba==='pedidos' ? 'block' : 'none';
+  document.getElementById('btn-aba-pedidos').style.color = aba==='pedidos' ? 'var(--ink)' : '';
+  document.getElementById('btn-aba-pedidos').style.borderColor = aba==='pedidos' ? 'var(--ink)' : '';
+  document.getElementById('btn-aba-moveis').style.color = aba==='moveis' ? 'var(--ink)' : '';
+  document.getElementById('btn-aba-moveis').style.borderColor = aba==='moveis' ? 'var(--ink)' : '';
+  if(aba==='moveis') carregarMoveis();
+}
+
+function carregarAtual(){
+  if(abaAtual==='moveis') carregarMoveis();
+  else carregarPedidos();
+}
+
+// ── MÓVEIS ────────────────────────────────────────────────────────────────────
+let fotoBase64 = '';
+
+function carregarFoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  // Redimensionar para max 800px
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      const max = 800;
+      if(w > max || h > max){
+        if(w > h){ h = Math.round(h*max/w); w = max; }
+        else { w = Math.round(w*max/h); h = max; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      fotoBase64 = canvas.toDataURL('image/jpeg', 0.82);
+      document.getElementById('mv-foto-img').src = fotoBase64;
+      document.getElementById('mv-foto-preview').style.display = 'block';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removerFoto(){
+  fotoBase64 = '';
+  document.getElementById('mv-foto-preview').style.display = 'none';
+  document.getElementById('mv-foto-input').value = '';
+}
+
+async function salvarMovel(){
+  const nome  = document.getElementById('mv-nome').value.trim();
+  const preco = document.getElementById('mv-preco').value;
+  if(!nome || !preco){ showToast('Preencha nome e preço'); return; }
+
+  const r = await fetch('/api/admin/moveis', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      nome, preco: parseFloat(preco),
+      descricao: document.getElementById('mv-desc').value.trim(),
+      condicao:  document.getElementById('mv-cond').value,
+      foto: fotoBase64,
+    })
+  });
+  if(r.ok){
+    showToast('✅ Móvel salvo!');
+    document.getElementById('mv-nome').value = '';
+    document.getElementById('mv-preco').value = '';
+    document.getElementById('mv-desc').value = '';
+    removerFoto();
+    carregarMoveis();
+  } else {
+    showToast('Erro ao salvar');
+  }
+}
+
+async function carregarMoveis(){
+  const r = await fetch('/api/admin/moveis');
+  if(r.status===401){ location.reload(); return; }
+  const data = await r.json();
+  const tbody = document.getElementById('tabelaMoveis');
+  if(!data.moveis.length){
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Nenhum móvel cadastrado ainda</td></tr>';
+    return;
+  }
+  const brl = v => 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  tbody.innerHTML = data.moveis.map(m=>`
+    <tr>
+      <td>
+        ${m.foto
+          ? `<img src="${m.foto}" style="width:56px;height:42px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">`
+          : `<div style="width:56px;height:42px;background:var(--bg3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🛋️</div>`}
+      </td>
+      <td style="font-weight:600;font-size:.88rem">${m.nome}</td>
+      <td style="font-weight:700;color:var(--ink)">${brl(m.preco)}</td>
+      <td>
+        <span class="badge ${m.condicao==='novo'?'pago':'pendente'}">${m.condicao==='novo'?'Novo':'Usado'}</span>
+      </td>
+      <td>
+        <select class="status-sel" onchange="atualizarMovel(${m.id},{vendido:this.value==='vendido'})">
+          <option value="disponivel" ${!m.vendido?'selected':''}>✅ Disponível</option>
+          <option value="vendido" ${m.vendido?'selected':''}>❌ Vendido</option>
+        </select>
+      </td>
+      <td style="font-size:.78rem;color:var(--gr)">${m.criado_em}</td>
+      <td>
+        <button onclick="deletarMovel(${m.id},'${m.nome}')"
+          style="background:transparent;border:1px solid var(--border);color:var(--red);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.72rem;font-family:var(--font)">
+          Excluir
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+async function atualizarMovel(id, data){
+  const r = await fetch(`/api/admin/moveis/${id}`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  });
+  if(r.ok) showToast('✅ Atualizado!');
+  else showToast('Erro ao atualizar');
+  carregarMoveis();
+}
+
+async function deletarMovel(id, nome){
+  if(!confirm(`Excluir "${nome}"?`)) return;
+  const r = await fetch(`/api/admin/moveis/${id}`, { method:'DELETE' });
+  if(r.ok){ showToast('Móvel excluído'); carregarMoveis(); }
+  else showToast('Erro ao excluir');
+}
+
 </script>
 </body>
 </html>
