@@ -55,8 +55,10 @@ class Pedido(db.Model):
     pagamento    = db.Column(db.String(20))
     mp_pref_id   = db.Column(db.String(100))
     mp_payment_id= db.Column(db.String(100))
-    total        = db.Column(db.Float)
-    tinta        = db.Column(db.Boolean, default=False)
+    total              = db.Column(db.Float)
+    tinta              = db.Column(db.Boolean, default=False)
+    whatsapp_cliente   = db.Column(db.String(20), nullable=True)
+    itens_json         = db.Column(db.Text, nullable=True)
     criado_em    = db.Column(db.DateTime, default=datetime.utcnow)
 
 # ── Página principal ────────────────────────────────────────────────────────
@@ -70,8 +72,7 @@ def criar_pedido():
     data = request.get_json() or {}
 
     # Validar campos obrigatórios
-    required = ["tamanho","textos","frete_nome","frete_preco",
-                "end_nome","end_email","end_rua","end_cidade","preco_prod"]
+    required = ["frete_nome","frete_preco","end_nome","end_email","end_rua","end_cidade","preco_prod"]
     for field in required:
         if not data.get(field) and data.get(field) != 0:
             return jsonify({"erro": f"Campo obrigatório: {field}"}), 400
@@ -79,30 +80,50 @@ def criar_pedido():
     # Gerar número do pedido
     numero = "BG" + datetime.now().strftime("%y%m%d") + secrets.token_hex(2).upper()
     total  = float(data["preco_prod"]) + float(data["frete_preco"])
-    textos = data.get("textos", [])
-    textos_str = " | ".join(textos) if isinstance(textos, list) else textos
+
+    # Suporte a múltiplos itens (carrinho)
+    itens = data.get("itens", [])
+    if itens:
+        textos_str = " | ".join([
+            f"[{it.get('tamanho')}mm] " + " / ".join(t for t in it.get("textos",[]) if t.strip())
+            for it in itens
+        ])
+        textos = [t for it in itens for t in it.get("textos",[]) if t.strip()]
+        tamanho = itens[0].get("tamanho","") if itens else ""
+        categoria = itens[0].get("categoria","") if itens else ""
+        layout = itens[0].get("layout","") if itens else ""
+        tinta = any(it.get("tinta") for it in itens)
+    else:
+        textos = data.get("textos", [])
+        textos_str = " | ".join(textos) if isinstance(textos, list) else textos
+        tamanho = data.get("tamanho","")
+        categoria = data.get("categoria","")
+        layout = data.get("layout","")
+        tinta = bool(data.get("tinta", False))
 
     # Criar pedido no banco
     pedido = Pedido(
-        numero       = numero,
-        tamanho      = data.get("tamanho"),
-        categoria    = data.get("categoria"),
-        layout       = data.get("layout"),
-        textos       = json.dumps(textos, ensure_ascii=False),
-        preco_prod   = float(data["preco_prod"]),
-        frete_nome   = data.get("frete_nome"),
-        frete_preco  = float(data["frete_preco"]),
-        end_nome     = data.get("end_nome"),
-        end_email    = data.get("end_email"),
-        end_tel      = data.get("end_tel",""),
-        end_cep      = data.get("end_cep",""),
-        end_rua      = data.get("end_rua"),
-        end_comp     = data.get("end_comp",""),
-        end_bairro   = data.get("end_bairro",""),
-        end_cidade   = data.get("end_cidade"),
-        pagamento    = data.get("pagamento","pix"),
-        tinta        = bool(data.get("tinta", False)),
-        total        = total,
+        numero           = numero,
+        tamanho          = tamanho,
+        categoria        = categoria,
+        layout           = layout,
+        textos           = json.dumps(textos, ensure_ascii=False),
+        itens_json       = json.dumps(itens, ensure_ascii=False),
+        whatsapp_cliente = data.get("whatsapp_cliente",""),
+        preco_prod       = float(data["preco_prod"]),
+        frete_nome       = data.get("frete_nome"),
+        frete_preco      = float(data["frete_preco"]),
+        end_nome         = data.get("end_nome"),
+        end_email        = data.get("end_email"),
+        end_tel          = data.get("end_tel",""),
+        end_cep          = data.get("end_cep",""),
+        end_rua          = data.get("end_rua"),
+        end_comp         = data.get("end_comp",""),
+        end_bairro       = data.get("end_bairro",""),
+        end_cidade       = data.get("end_cidade"),
+        pagamento        = data.get("pagamento","mercadopago"),
+        tinta            = tinta,
+        total            = total,
     )
     db.session.add(pedido)
     db.session.commit()
@@ -111,7 +132,7 @@ def criar_pedido():
     base_url = request.host_url.rstrip("/")
     pref_data = {
         "items": [{
-            "title": f"Carimbo {data['tamanho']}mm — {textos_str[:50]}",
+            "title": f"{len(itens) if itens else 1} Carimbo(s) — Balaio de Gato",
             "quantity": 1,
             "unit_price": total,
             "currency_id": "BRL",
@@ -362,6 +383,7 @@ def admin_pedidos():
             "end_comp": p.end_comp,
             "end_bairro": p.end_bairro,
             "end_cidade": p.end_cidade,
+            "whatsapp_cliente": p.whatsapp_cliente or "",
             "frete_nome": p.frete_nome,
             "frete_preco": p.frete_preco,
             "total": p.total,
