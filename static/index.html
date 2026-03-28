@@ -513,6 +513,42 @@ body::before{
   <div class="section-title">Monte seu carimbo</div>
   <div class="section-sub">Escolha o tamanho, o modelo e preencha o texto.</div>
 
+  <!-- ── TINTA — card informativo no topo ── -->
+  <div class="card" style="margin-bottom:16px;border-color:rgba(201,146,42,.3);background:#1A1000">
+    <div style="display:flex;align-items:flex-start;gap:14px">
+      <div style="width:52px;height:52px;border-radius:12px;
+        background:rgba(201,146,42,.15);border:1px solid rgba(201,146,42,.3);
+        display:flex;align-items:center;justify-content:center;
+        font-size:1.5rem;flex-shrink:0">🖋️</div>
+      <div style="flex:1">
+        <div style="font-size:.95rem;font-weight:700;color:var(--ink-l);margin-bottom:4px">
+          Tinta para Carimbo — R$ 28,00
+        </div>
+        <div style="font-size:.82rem;color:var(--gr);line-height:1.6;margin-bottom:12px">
+          <strong style="color:var(--dark)">Os carimbos já vêm prontos para uso.</strong>
+          Esta é uma opção separada para quem deseja adquirir um
+          <strong style="color:var(--dark)">frasco de tinta extra</strong>
+          de reposição — tinta própria para carimbo, da cor preta.
+        </div>
+        <div id="tintaItemCard" onclick="toggleTintaItem()"
+          style="display:flex;align-items:center;justify-content:space-between;
+            padding:10px 14px;border-radius:10px;
+            border:1.5px solid #2A2A2A;background:#111;
+            cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="tintaItemCheck" style="width:22px;height:22px;border-radius:6px;
+              border:2px solid #333;display:flex;align-items:center;
+              justify-content:center;font-size:.75rem;
+              transition:all .2s;flex-shrink:0"></div>
+            <span style="font-size:.88rem;font-weight:600;color:var(--gr)">
+              Quero adicionar 1 frasco de tinta (+ R$ 28,00)
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Seletor de tamanho -->
   <div class="card">
     <div class="form-label" style="margin-bottom:12px">Escolha o tamanho</div>
@@ -595,33 +631,7 @@ body::before{
       </div>
     </div>
 
-    <!-- Tinta como item separado -->
-    <div style="margin-bottom:16px">
-      <div class="form-label" style="margin-bottom:10px">Deseja adicionar tinta?</div>
-      <div id="tintaItemCard" onclick="toggleTintaItem()"
-        style="display:flex;align-items:center;gap:14px;padding:14px 16px;
-          border-radius:14px;border:2px solid #2A2A2A;background:#1A1A1A;
-          cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent">
-        <div style="width:42px;height:42px;border-radius:10px;background:#111;
-          border:1px solid #2A2A2A;
-          display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">
-          🖋️
-        </div>
-        <div style="flex:1">
-          <div style="font-size:.9rem;font-weight:700;color:#F5F0E0">Tinta para Carimbo</div>
-          <div style="font-size:.75rem;color:#7A6A55;margin-top:2px">
-            Tinta PRÓPRIA para carimbos — recomendada para melhor resultado
-          </div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:.95rem;font-weight:700;color:#C9922A">R$ 28,00</div>
-          <div id="tintaItemCheck" style="width:22px;height:22px;border-radius:50%;
-            border:2px solid #333;margin:6px auto 0;display:flex;align-items:center;
-            justify-content:center;font-size:.7rem;transition:all .2s">
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- Aviso de responsabilidade -->
     <div style="background:#1A0A00;border-left:3px solid var(--stamp);
