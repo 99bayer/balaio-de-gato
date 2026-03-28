@@ -503,6 +503,7 @@ async function salvarMovel(){
   const preco = document.getElementById('mv-preco').value;
   if(!nome || !preco){ showToast('Preencha nome e preço'); return; }
 
+  // 1. Criar o móvel sem fotos primeiro
   const r = await fetch('/api/admin/moveis', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -510,10 +511,25 @@ async function salvarMovel(){
       nome, preco: parseFloat(preco),
       descricao: document.getElementById('mv-desc').value.trim(),
       condicao:  document.getElementById('mv-cond').value,
-      fotos: fotosBase64,
+      fotos: [],
     })
   });
   if(r.ok){
+    const res = await r.json();
+    const id = res.id;
+
+    // 2. Enviar fotos uma a uma se houver
+    if(fotosBase64.length > 0){
+      showToast(`Enviando ${fotosBase64.length} foto(s)...`);
+      for(let i=0; i<fotosBase64.length; i++){
+        await fetch(`/api/admin/moveis/${id}/foto`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({foto: fotosBase64[i]}),
+        });
+      }
+    }
+
     showToast('✅ Móvel salvo!');
     document.getElementById('mv-nome').value = '';
     document.getElementById('mv-preco').value = '';
