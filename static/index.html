@@ -1147,9 +1147,18 @@ async function confirmarPedido(btn){
 
   } catch(e) {
     console.error('Erro:', e);
-    // Render pode estar acordando do sleep (plano free) — tentar novamente
-    btn.textContent = 'Aguarde, conectando...';
-    setTimeout(async () => {
+    // Render hibernando — aguardar e tentar várias vezes
+    let tentativa = 1;
+    let segundos = 35;
+    const intervalo = setInterval(()=>{
+      segundos--;
+      btn.textContent = `Conectando ao servidor... (${segundos}s)`;
+    }, 1000);
+
+    const tentar = async () => {
+      clearInterval(intervalo);
+      btn.textContent = `Tentando novamente (${tentativa}/3)...`;
+      tentativa++;
       try {
         const resp2 = await fetch('/api/pedido', {
           method: 'POST',
@@ -1159,15 +1168,25 @@ async function confirmarPedido(btn){
         const data2 = await resp2.json();
         if(data2.ok && data2.checkout_url){
           window.location.href = data2.checkout_url;
+        } else if(tentativa <= 3) {
+          setTimeout(tentar, 10000);
         } else {
-          showToast('Erro ao processar. Verifique os dados e tente novamente.');
+          showToast('Não foi possível conectar. Tente novamente em alguns instantes.');
           btn.disabled=false; btn.textContent='✓ Confirmar pedido';
         }
       } catch(e2) {
-        showToast('Servidor indisponível. Aguarde 30 segundos e tente novamente.');
-        btn.disabled=false; btn.textContent='✓ Confirmar pedido';
+        if(tentativa <= 3){
+          let s2 = 15;
+          const iv2 = setInterval(()=>{ s2--; btn.textContent=`Aguardando servidor... (${s2}s)`; },1000);
+          setTimeout(()=>{ clearInterval(iv2); tentar(); }, 15000);
+        } else {
+          showToast('Servidor demorou para responder. Tente novamente em 1 minuto.');
+          btn.disabled=false; btn.textContent='✓ Confirmar pedido';
+        }
       }
-    }, 8000);
+    };
+
+    setTimeout(tentar, 35000);
   }
 }
 
