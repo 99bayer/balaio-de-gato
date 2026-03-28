@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pedido confirmado — Faça seu Carimbo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F5F0E8;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#FDFBF7;border-radius:20px;padding:40px 32px;
+  max-width:440px;width:100%;text-align:center;
+  box-shadow:0 8px 40px rgba(27,58,92,.12)}
+.ico{font-size:3.5rem;margin-bottom:16px;animation:bounce .6s ease}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+h1{font-family:'Playfair Display',serif;font-size:1.7rem;color:#1B3A5C;margin-bottom:8px}
+p{font-size:.9rem;color:#5A5040;line-height:1.6;margin-bottom:20px}
+.info{background:#F5F0E8;border-radius:10px;padding:14px;
+  font-size:.82rem;color:#5A5040;line-height:1.7;margin-bottom:20px}
+.btn{display:inline-block;background:#1B3A5C;color:#fff;
+  border-radius:50px;padding:12px 28px;font-size:.88rem;font-weight:600;
+  text-decoration:none;font-family:'DM Sans',sans-serif}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="ico">🎉</div>
+  <h1>Pedido confirmado!</h1>
+  <p>Seu pagamento foi aprovado e seu carimbo já está na fila de produção.</p>
+  <div class="info">
+    📧 Você receberá um e-mail de confirmação em breve<br>
+    ⏱ Prazo de produção: <strong>3 a 5 dias úteis</strong><br>
+    📦 Envio pelos Correios após produção<br>
+    📱 Dúvidas: WhatsApp <strong>(43) 99690-5591</strong>
+  </div>
+  <a href="/" class="btn">Fazer outro pedido</a>
+</div>
+</body>
+</html>
