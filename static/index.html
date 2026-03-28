@@ -381,6 +381,98 @@ body::before{
   .pag-opts{grid-template-columns:1fr 1fr}
   .header-logo{font-size:1.9rem}
 }
+
+/* ── Carrinho ── */
+.cart-btn-wrap{
+  position:fixed;bottom:24px;right:20px;z-index:50;
+}
+.cart-fab{
+  background:linear-gradient(135deg,var(--ink),var(--ink-l));
+  color:#000;border:none;border-radius:50px;
+  padding:12px 20px;font-size:.88rem;font-weight:800;
+  font-family:var(--font-b);cursor:pointer;
+  box-shadow:0 6px 24px rgba(201,146,42,.4);
+  display:flex;align-items:center;gap:8px;
+  transition:transform .15s;
+}
+.cart-fab:active{transform:scale(.96)}
+.cart-count{
+  background:#000;color:var(--ink);border-radius:50%;
+  width:22px;height:22px;display:flex;align-items:center;
+  justify-content:center;font-size:.72rem;font-weight:800;
+}
+
+.cart-drawer{
+  position:fixed;inset:0;z-index:60;display:none;
+}
+.cart-drawer.open{display:block}
+.cart-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.6);
+}
+.cart-panel{
+  position:absolute;right:0;top:0;bottom:0;
+  width:min(420px,100vw);background:#141414;
+  border-left:1px solid #2A2A2A;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.cart-header{
+  padding:20px;border-bottom:1px solid #2A2A2A;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.cart-title{
+  font-family:var(--font-d);font-size:1.2rem;
+  font-weight:700;color:var(--dark);
+}
+.cart-close{
+  background:transparent;border:1px solid #2A2A2A;
+  color:var(--gr-l);border-radius:8px;
+  padding:6px 12px;cursor:pointer;font-size:.8rem;
+  font-family:var(--font-b);
+}
+.cart-items{flex:1;overflow-y:auto;padding:16px}
+.cart-item{
+  background:#1A1A1A;border:1px solid #2A2A2A;
+  border-radius:12px;padding:14px;margin-bottom:10px;
+  position:relative;
+}
+.cart-item-num{
+  font-size:.68rem;font-weight:800;color:var(--ink);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;
+}
+.cart-item-size{font-size:.88rem;font-weight:700;color:var(--dark)}
+.cart-item-txt{
+  font-family:var(--font-m);font-size:.78rem;
+  color:var(--gr);line-height:1.5;margin:4px 0;
+}
+.cart-item-price{font-size:.95rem;font-weight:700;color:var(--ink)}
+.cart-item-del{
+  position:absolute;top:10px;right:10px;
+  background:transparent;border:none;color:#C0392B;
+  font-size:1rem;cursor:pointer;padding:4px;
+}
+.cart-footer{
+  padding:16px;border-top:1px solid #2A2A2A;
+}
+.cart-total{
+  display:flex;justify-content:space-between;
+  font-size:1.1rem;font-weight:700;color:var(--dark);
+  margin-bottom:14px;
+}
+.cart-total span:last-child{color:var(--ink)}
+.btn-cart-checkout{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,var(--ink),var(--ink-l));
+  color:#000;border:none;border-radius:12px;
+  font-size:.95rem;font-weight:800;
+  font-family:var(--font-b);cursor:pointer;
+  transition:all .15s;
+}
+.btn-cart-checkout:active{transform:scale(.98)}
+.cart-empty{
+  text-align:center;padding:48px 24px;
+  color:var(--gr-l);font-size:.88rem;
+}
 </style>
 </head>
 <body>
@@ -503,14 +595,15 @@ body::before{
       </div>
     </div>
 
-    <!-- Adicionar Tinta -->
+    <!-- Tinta como item separado -->
     <div style="margin-bottom:16px">
-      <div class="form-label" style="margin-bottom:10px">Adicionar ao pedido</div>
-      <div id="tinhaCard" onclick="toggleTinta()"
+      <div class="form-label" style="margin-bottom:10px">Deseja adicionar tinta?</div>
+      <div id="tintaItemCard" onclick="toggleTintaItem()"
         style="display:flex;align-items:center;gap:14px;padding:14px 16px;
           border-radius:14px;border:2px solid #2A2A2A;background:#1A1A1A;
           cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent">
         <div style="width:42px;height:42px;border-radius:10px;background:#111;
+          border:1px solid #2A2A2A;
           display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">
           🖋️
         </div>
@@ -521,8 +614,8 @@ body::before{
           </div>
         </div>
         <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:.95rem;font-weight:700;color:#C0392B">+ R$ 28,00</div>
-          <div id="tinhaCheck" style="width:22px;height:22px;border-radius:50%;
+          <div style="font-size:.95rem;font-weight:700;color:#C9922A">R$ 28,00</div>
+          <div id="tintaItemCheck" style="width:22px;height:22px;border-radius:50%;
             border:2px solid #333;margin:6px auto 0;display:flex;align-items:center;
             justify-content:center;font-size:.7rem;transition:all .2s">
           </div>
@@ -530,8 +623,26 @@ body::before{
       </div>
     </div>
 
-    <button class="btn btn-primary" onclick="irParaEntrega()">
-      Continuar — Dados de entrega →
+    <!-- Aviso de responsabilidade -->
+    <div style="background:#1A0A00;border-left:3px solid var(--stamp);
+      border-radius:10px;padding:12px 14px;margin-bottom:16px;
+      font-size:.78rem;color:#E8A090;line-height:1.6">
+      ⚠️ <strong style="color:#E74C3C">Atenção:</strong>
+      Todos os dados informados para o carimbo são de inteira responsabilidade do cliente,
+      não havendo troca em caso de erro de escrita.
+    </div>
+
+    <!-- Campo WhatsApp -->
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="form-label">WhatsApp para contato <span style="color:var(--gr-l);font-weight:400;font-size:.72rem">obrigatório</span></label>
+      <input type="tel" class="form-input mono" id="clienteWhatsApp"
+        placeholder="(43) 99999-9999" maxlength="15"
+        oninput="mascaraTel(this)" autocomplete="tel">
+    </div>
+
+    <!-- Botão adicionar ao carrinho -->
+    <button class="btn btn-primary" onclick="adicionarAoCarrinho()">
+      🛒 Adicionar ao carrinho
     </button>
   </div>
 </div>
@@ -629,56 +740,43 @@ body::before{
     </div>
   </div>
 
-  <!-- Forma de pagamento -->
+  <!-- Pagamento via Mercado Pago -->
   <div class="card">
-    <div class="form-label" style="margin-bottom:12px">Forma de pagamento</div>
-    <div class="pag-opts">
-      <div class="pag-card selected" id="pagPix" onclick="selectPag('pix')">
-        <div class="pag-ico">📱</div>
-        <div class="pag-nome">Pix</div>
-        <div class="pag-sub">Aprovação imediata</div>
+    <div class="form-label" style="margin-bottom:14px">Pagamento seguro</div>
+
+    <div style="background:#111;border-radius:14px;padding:22px;
+      text-align:center;border:1px solid #2A2A2A;margin-bottom:14px">
+      <div style="font-size:2.2rem;margin-bottom:10px">🔒</div>
+      <div style="font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:6px">
+        Checkout seguro via Mercado Pago
       </div>
-      <div class="pag-card" id="pagCard" onclick="selectPag('cartao')">
-        <div class="pag-ico">💳</div>
-        <div class="pag-nome">Cartão</div>
-        <div class="pag-sub">Crédito / Débito</div>
+      <div style="font-size:.84rem;color:var(--gr);line-height:1.7;margin-bottom:16px">
+        Você será redirecionado para o Mercado Pago.<br>
+        Pague com <strong>Pix QR Code</strong> ou <strong>Cartão</strong> —<br>
+        o valor já vem preenchido automaticamente.
+      </div>
+      <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">
+        <span style="background:#1A1A1A;border:1px solid #2A2A2A;
+          border-radius:20px;padding:6px 14px;font-size:.75rem;font-weight:700;
+          color:#C8B89A">📱 Pix QR Code</span>
+        <span style="background:#1A1A1A;border:1px solid #2A2A2A;
+          border-radius:20px;padding:6px 14px;font-size:.75rem;font-weight:700;
+          color:#C8B89A">💳 Crédito</span>
+        <span style="background:#1A1A1A;border:1px solid #2A2A2A;
+          border-radius:20px;padding:6px 14px;font-size:.75rem;font-weight:700;
+          color:#C8B89A">💳 Débito</span>
       </div>
     </div>
 
-    <!-- Pix -->
-    <div id="pixSection">
-      <div class="pix-box">
-        <div class="pix-chave-label">Chave Pix</div>
-        <div class="pix-chave" id="pixChave">carregando...</div>
-        <div class="pix-valor" id="pixValor">R$ 0,00</div>
-        <div class="pix-inst">
-          Copie a chave, abra o app do seu banco,<br>
-          escolha <strong>Pix → Pagar → Chave</strong> e cole o valor exato.
-        </div>
-        <button class="btn-copy" onclick="copiarPix()">📋 Copiar chave Pix</button>
-      </div>
-      <div style="margin-top:14px;padding:12px 14px;background:var(--stamp-xl);
-        border-left:3px solid var(--stamp);border-radius:8px;
-        font-size:.8rem;color:var(--dark);line-height:1.5">
-        ⚠️ <strong>Importante:</strong> após o pagamento, clique em "Confirmar pedido" abaixo.
-        Seu pedido será produzido após a confirmação do pagamento.
-      </div>
+    <div style="padding:10px 14px;background:#1A0A00;border-left:3px solid #C9922A;
+      border-radius:8px;font-size:.8rem;color:#C8B89A;line-height:1.5;margin-bottom:16px">
+      ✅ O valor cobrado é exatamente o do seu pedido — sem possibilidade de alteração manual.
     </div>
 
-    <!-- Cartão -->
-    <div id="cartaoSection" style="display:none">
-      <div style="padding:20px;text-align:center;background:#0D0D0D;border-radius:12px">
-        <div style="font-size:.88rem;color:var(--gr);line-height:1.6">
-          Você será redirecionado para o ambiente seguro do<br>
-          <strong>Mercado Pago</strong> para inserir os dados do cartão.
-        </div>
-      </div>
-    </div>
-
-    <div class="btn-nav" style="margin-top:16px">
+    <div class="btn-nav">
       <button class="btn btn-outline" onclick="irPara(2)">← Voltar</button>
       <button class="btn btn-stamp" id="btnConfirmar" onclick="confirmarPedido(this)">
-        ✓ Confirmar pedido
+        🔒 Pagar com Mercado Pago →
       </button>
     </div>
   </div>
@@ -704,259 +802,308 @@ body::before{
   </div>
 </div>
 
+
+<!-- ── ITEM TINTA (fora do layoutCard, card separado) ── -->
+<!-- já tratado no JS via carrinho -->
+
+<!-- ── DRAWER CARRINHO ── -->
+<div class="cart-btn-wrap" id="cartBtnWrap" style="display:none">
+  <button class="cart-fab" onclick="abrirCarrinho()">
+    🛒 Carrinho
+    <div class="cart-count" id="cartCount">0</div>
+  </button>
+</div>
+
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-overlay" onclick="fecharCarrinho()"></div>
+  <div class="cart-panel">
+    <div class="cart-header">
+      <div class="cart-title">🛒 Seu carrinho</div>
+      <button class="cart-close" onclick="fecharCarrinho()">✕ Fechar</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">Seu carrinho está vazio.<br>Configure um carimbo e adicione!</div>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="cartTotal">R$ 0,00</span>
+      </div>
+      <button class="btn-cart-checkout" onclick="irParaEntrega()">
+        Continuar — Dados de entrega →
+      </button>
+    </div>
+  </div>
+</div>
 </div><!-- /shell -->
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ══ ESTADO ══════════════════════════════════════════════════════════════════
+// ══ CARRINHO ═════════════════════════════════════════════════════════════════
+let carrinho = []; // [{tamanho, categoria, layout, textos, preco, tinta:false}]
+
+function brl(v){ return 'R$ '+Number(v).toFixed(2).replace('.',',') }
+
+function atualizarCarrinhoUI(){
+  const total = carrinho.reduce((s,i)=>s+i.preco+(i.tinta?28:0),0);
+  const count = carrinho.length;
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotal').textContent = brl(total);
+  document.getElementById('cartBtnWrap').style.display = count>0 ? 'block':'none';
+
+  const el = document.getElementById('cartItems');
+  if(!count){
+    el.innerHTML = '<div class="cart-empty">Seu carrinho está vazio.</div>';
+    return;
+  }
+  el.innerHTML = carrinho.map((it,i)=>`
+    <div class="cart-item">
+      <button class="cart-item-del" onclick="removerDoCarrinho(${i})">✕</button>
+      <div class="cart-item-num">Item ${i+1}</div>
+      <div class="cart-item-size">${it.tamanho}mm — ${it.categoria}</div>
+      <div class="cart-item-txt">${it.textos.filter(t=>t.trim()).join(' | ')}</div>
+      ${it.tinta?'<div class="cart-item-txt" style="color:var(--ink)">+ Tinta para carimbo</div>':''}
+      <div class="cart-item-price">${brl(it.preco+(it.tinta?28:0))}</div>
+    </div>`).join('');
+}
+
+function removerDoCarrinho(i){
+  carrinho.splice(i,1);
+  atualizarCarrinhoUI();
+}
+
+function abrirCarrinho(){ document.getElementById('cartDrawer').classList.add('open') }
+function fecharCarrinho(){ document.getElementById('cartDrawer').classList.remove('open') }
+
+// ══ ESTADO ATUAL (carimbo sendo configurado) ══════════════════════════════
 const state = {
-  tinta: false,
-  tamanho: null, categoria: null, linhasMax: 2,
-  preco: 0, layout: 'modelo',
-  textos: [],
-  frete: null, freteNome: '', fretePreco: 0,
-  endereco: {},
-  pagamento: 'pix',
-  pixChave: '14163584000120', // chave Pix do seu pai — ajuste aqui
+  tamanho:null, categoria:null, linhasMax:2,
+  preco:0, layout:'modelo',
+  textos:[], tinta:false,
 };
 
-// ══ LAYOUTS POR CATEGORIA ════════════════════════════════════════════════════
+// ══ LAYOUTS ══════════════════════════════════════════════════════════════════
 const LAYOUTS = {
-  pequeno: [
-    { id:'modelo', nome:'Modelo', ico:'📋',
-      campos:[
-        {id:'l1', label:'Nome', placeholder:'Ex: João da Silva', max:30, bold:true},
-        {id:'l2', label:'Cargo ou CPF', placeholder:'Ex: Diretor | CPF: 000.000.000-00', max:35},
-      ]},
-    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
+  pequeno:[
+    {id:'modelo',nome:'Modelo',ico:'📋',campos:[
+      {id:'l1',label:'Nome',placeholder:'Ex: João da Silva',max:30,bold:true},
+      {id:'l2',label:'Cargo ou CPF',placeholder:'Ex: Diretor | CPF: 000.000.000-00',max:35},
+    ]},
+    {id:'livre',nome:'Livre',ico:'✏️',campos:[]},
   ],
-  medio: [
-    { id:'modelo', nome:'Modelo', ico:'📋',
-      campos:[
-        {id:'l1', label:'Nome', placeholder:'Ex: Maria Oliveira', max:30, bold:true},
-        {id:'l2', label:'Cargo ou CPF', placeholder:'Ex: Contadora | CPF: 000.000.000-00', max:35},
-        {id:'l3', label:'Informação adicional', placeholder:'Ex: (43) 99999-9999', max:40},
-      ]},
-    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
+  medio:[
+    {id:'modelo',nome:'Modelo',ico:'📋',campos:[
+      {id:'l1',label:'Nome',placeholder:'Ex: Maria Oliveira',max:30,bold:true},
+      {id:'l2',label:'Cargo ou CPF',placeholder:'Ex: Contadora | CPF: 000.000.000-00',max:35},
+      {id:'l3',label:'Informação adicional',placeholder:'Ex: (43) 99999-9999',max:40},
+    ]},
+    {id:'livre',nome:'Livre',ico:'✏️',campos:[]},
   ],
-  grande: [
-    { id:'modelo', nome:'Modelo', ico:'📋',
-      campos:[
-        {id:'l1', label:'Nome', placeholder:'Ex: Carlos Pereira', max:30, bold:true},
-        {id:'l2', label:'Cargo ou CPF', placeholder:'Ex: Advogado | OAB 00000', max:35},
-        {id:'l3', label:'Informação adicional', placeholder:'Ex: (43) 99999-9999', max:40},
-        {id:'l4', label:'Informação adicional', placeholder:'Ex: Jandaia do Sul — PR', max:40},
-      ]},
-    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
+  grande:[
+    {id:'modelo',nome:'Modelo',ico:'📋',campos:[
+      {id:'l1',label:'Nome',placeholder:'Ex: Carlos Pereira',max:30,bold:true},
+      {id:'l2',label:'Cargo ou CPF',placeholder:'Ex: Advogado | OAB 00000',max:35},
+      {id:'l3',label:'Informação adicional',placeholder:'Ex: (43) 99999-9999',max:40},
+      {id:'l4',label:'Informação adicional',placeholder:'Ex: Jandaia do Sul — PR',max:40},
+    ]},
+    {id:'livre',nome:'Livre',ico:'✏️',campos:[]},
   ],
-  cnpj: [
-    { id:'modelo', nome:'Modelo CNPJ', ico:'🏢',
-      campos:[
-        {id:'l1', label:'CNPJ', placeholder:'00.000.000/0001-00', max:25, bold:true},
-        {id:'l2', label:'Razão Social', placeholder:'Nome da empresa Ltda.', max:40},
-        {id:'l3', label:'Endereço e Cidade', placeholder:'Rua X, 123 — Jandaia do Sul/PR', max:45},
-      ]},
-    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
+  cnpj:[
+    {id:'modelo',nome:'Modelo CNPJ',ico:'🏢',campos:[
+      {id:'l1',label:'CNPJ',placeholder:'00.000.000/0001-00',max:25,bold:true},
+      {id:'l2',label:'Razão Social',placeholder:'Nome da empresa Ltda.',max:40},
+      {id:'l3',label:'Endereço e Cidade',placeholder:'Rua X, 123 — Jandaia do Sul/PR',max:45},
+    ]},
+    {id:'livre',nome:'Livre',ico:'✏️',campos:[]},
   ],
-  quadrado: [
-    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
-  ],
-  comprido: [
-    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
-  ],
+  quadrado:[{id:'livre',nome:'Livre',ico:'✏️',campos:[]}],
+  comprido:[{id:'livre',nome:'Livre',ico:'✏️',campos:[]}],
 };
 
-// ══ CAMPOS LIVRES POR CATEGORIA ══════════════════════════════════════════════
-function getCamposLivres(cat, linhasMax) {
-  const campos = [];
-  for(let i=1; i<=linhasMax; i++){
-    campos.push({
-      id:`livre${i}`, label:`Linha ${i}`,
+function getCamposLivres(cat,linhasMax){
+  const campos=[];
+  for(let i=1;i<=linhasMax;i++){
+    campos.push({id:`livre${i}`,label:`Linha ${i}`,
       placeholder:`Texto da linha ${i}`,
-      max: cat==='quadrado' ? 12 : cat==='comprido' ? 40 : 35,
-    });
+      max:cat==='quadrado'?12:cat==='comprido'?40:35});
   }
   return campos;
 }
 
-// ══ TINTA ════════════════════════════════════════════════════════════════════
-function toggleTinta(){
-  state.tinta = !state.tinta;
-  const card  = document.getElementById('tinhaCard');
-  const check = document.getElementById('tinhaCheck');
-  if(state.tinta){
-    card.style.borderColor  = '#C9922A';
-    card.style.background   = '#221800';
-    check.style.background  = '#C9922A';
-    check.style.borderColor = '#C9922A';
-    check.style.color       = '#000';
-    check.textContent       = '✓';
-  } else {
-    card.style.borderColor  = '#2A2A2A';
-    card.style.background   = '#1A1A1A';
-    check.style.background  = 'transparent';
-    check.style.borderColor = '#333';
-    check.textContent       = '';
-  }
-}
-
-// ══ SELECIONAR TAMANHO ══════════════════════════════════════════════════════
-function selectSize(el) {
+// ══ SELECIONAR TAMANHO ════════════════════════════════════════════════════
+function selectSize(el){
   document.querySelectorAll('.size-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
-  state.tamanho = el.dataset.size;
-  state.categoria = el.dataset.cat;
-  state.linhasMax = parseInt(el.dataset.lines);
-  state.preco = parseInt(el.dataset.price);
-  state.layout = 'modelo';
-  state.textos = [];
+  state.tamanho=el.dataset.size;
+  state.categoria=el.dataset.cat;
+  state.linhasMax=parseInt(el.dataset.lines);
+  state.preco=parseInt(el.dataset.price);
+  state.layout='modelo';
+  state.textos=[];
+  state.tinta=false;
   renderLayout();
   document.getElementById('layoutCard').style.display='block';
   document.getElementById('layoutCard').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-// ══ RENDERIZAR LAYOUT ════════════════════════════════════════════════════════
-function renderLayout() {
-  const cat = state.categoria;
-  const layouts = LAYOUTS[cat] || [];
-  const optsEl = document.getElementById('layoutOpts');
-  optsEl.innerHTML = '';
+// ══ LAYOUT ════════════════════════════════════════════════════════════════
+function renderLayout(){
+  const cat=state.categoria;
+  const layouts=LAYOUTS[cat]||[];
+  const optsEl=document.getElementById('layoutOpts');
+  optsEl.innerHTML='';
   layouts.forEach(l=>{
-    const btn = document.createElement('div');
-    btn.className = 'layout-btn' + (state.layout===l.id?' selected':'');
-    btn.innerHTML = `<span class="layout-ico">${l.ico}</span>${l.nome}`;
-    btn.onclick = ()=>{ state.layout=l.id; renderLayout(); };
+    const btn=document.createElement('div');
+    btn.className='layout-btn'+(state.layout===l.id?' selected':'');
+    btn.innerHTML=`<span class="layout-ico">${l.ico}</span>${l.nome}`;
+    btn.onclick=()=>{state.layout=l.id;renderLayout();};
     optsEl.appendChild(btn);
   });
-
-  // Campos
-  const layout = layouts.find(l=>l.id===state.layout);
-  let campos = layout ? layout.campos : [];
-  if(state.layout==='livre' || campos.length===0) {
-    campos = getCamposLivres(cat, state.linhasMax);
-  }
+  const layout=layouts.find(l=>l.id===state.layout);
+  let campos=layout?layout.campos:[];
+  if(state.layout==='livre'||campos.length===0) campos=getCamposLivres(cat,state.linhasMax);
   renderCampos(campos);
 }
 
-// ══ RENDERIZAR CAMPOS ════════════════════════════════════════════════════════
-function renderCampos(campos) {
-  const el = document.getElementById('camposTexto');
-  el.innerHTML = '';
-  state.textos = new Array(campos.length).fill('');
-
-  campos.forEach((campo, i)=>{
-    const div = document.createElement('div');
-    div.className = 'form-group';
-    div.innerHTML = `
+function renderCampos(campos){
+  const el=document.getElementById('camposTexto');
+  el.innerHTML='';
+  state.textos=new Array(campos.length).fill('');
+  campos.forEach((campo,i)=>{
+    const div=document.createElement('div');
+    div.className='form-group';
+    div.innerHTML=`
       <label class="form-label">${campo.label}</label>
       <input type="text" class="form-input mono" id="campo_${i}"
         placeholder="${campo.placeholder}" maxlength="${campo.max}"
-        oninput="atualizarTexto(${i}, this.value, ${campo.max})">
+        oninput="atualizarTexto(${i},this.value,${campo.max})">
       <div class="char-count" id="cc_${i}">0 / ${campo.max}</div>`;
     el.appendChild(div);
   });
-
-  // Guardar campos para o preview
-  el._campos = campos;
+  el._campos=campos;
   atualizarPreview(campos);
 }
 
-// ══ ATUALIZAR TEXTO E PREVIEW ════════════════════════════════════════════════
-function atualizarTexto(i, val, max) {
-  state.textos[i] = val;
-  const cc = document.getElementById(`cc_${i}`);
-  cc.textContent = `${val.length} / ${max}`;
-  cc.className = 'char-count' + (val.length > max*0.85 ? ' warn' : '');
-
-  const el = document.getElementById('camposTexto');
+function atualizarTexto(i,val,max){
+  state.textos[i]=val;
+  const cc=document.getElementById(`cc_${i}`);
+  cc.textContent=`${val.length} / ${max}`;
+  cc.className='char-count'+(val.length>max*0.85?' warn':'');
+  const el=document.getElementById('camposTexto');
   atualizarPreview(el._campos);
 }
 
-// ══ PREVIEW DO CARIMBO ══════════════════════════════════════════════════════
-function atualizarPreview(campos) {
-  const prev = document.getElementById('stampPreview');
-
-  // Dimensões baseadas no tamanho escolhido
-  const dims = {
-    '24x08': {w:140,h:48}, '36x12': {w:180,h:58},
-    '45x16': {w:200,h:72}, '56x20': {w:220,h:88},
-    '60x40': {w:220,h:148},'38x38': {w:148,h:148},
-    '70x10': {w:260,h:42},
+// ══ PREVIEW ═══════════════════════════════════════════════════════════════
+function atualizarPreview(campos){
+  const prev=document.getElementById('stampPreview');
+  const dims={
+    '24x08':{w:140,h:48},'36x12':{w:180,h:58},
+    '45x16':{w:200,h:72},'56x20':{w:220,h:88},
+    '60x40':{w:220,h:148},'38x38':{w:148,h:148},'70x10':{w:260,h:42},
   };
-  const d = dims[state.tamanho] || {w:180,h:70};
-  prev.style.width  = d.w+'px';
-  prev.style.height = d.h+'px';
-  prev.style.maxWidth = '100%';
-
-  // Font size baseado no tamanho
-  const baseFontSize = Math.min(d.w, d.h) < 50 ? 9 :
-                       Math.min(d.w, d.h) < 80 ? 11 : 13;
-
-  const textosFiltrados = state.textos.filter(t=>t.trim());
-  if(textosFiltrados.length === 0){
-    prev.innerHTML = '<div class="stamp-line empty" style="font-size:10px">Preencha os campos acima</div>';
+  const d=dims[state.tamanho]||{w:180,h:70};
+  prev.style.width=d.w+'px'; prev.style.height=d.h+'px'; prev.style.maxWidth='100%';
+  const baseFontSize=Math.min(d.w,d.h)<50?9:Math.min(d.w,d.h)<80?11:13;
+  const textosFiltrados=state.textos.filter(t=>t.trim());
+  if(!textosFiltrados.length){
+    prev.innerHTML='<div class="stamp-line empty" style="font-size:10px">Preencha os campos acima</div>';
     return;
   }
-
-  prev.innerHTML = '';
-  const isModelo = state.layout === 'modelo' && campos.length > 0;
-
-  state.textos.forEach((txt, i)=>{
-    if(!txt.trim()) return;
-    const div = document.createElement('div');
-    div.className = 'stamp-line' +
-      (isModelo && i===0 ? ' bold' : '') +
-      (isModelo && i===campos.length-1 ? ' small' : '');
-    div.style.fontSize = (i===0 && isModelo ? baseFontSize+2 : baseFontSize)+'px';
-    div.style.maxWidth = (d.w - 24)+'px';
-    div.textContent = txt;
+  prev.innerHTML='';
+  const isModelo=state.layout==='modelo'&&campos.length>0;
+  state.textos.forEach((txt,i)=>{
+    if(!txt.trim())return;
+    const div=document.createElement('div');
+    div.className='stamp-line'+(isModelo&&i===0?' bold':'')+(isModelo&&i===campos.length-1?' small':'');
+    div.style.fontSize=(i===0&&isModelo?baseFontSize+2:baseFontSize)+'px';
+    div.style.maxWidth=(d.w-24)+'px';
+    div.textContent=txt;
     prev.appendChild(div);
   });
 }
 
-// ══ IR PARA ENTREGA ══════════════════════════════════════════════════════════
-function irParaEntrega() {
-  const textos = state.textos.filter(t=>t.trim());
-  if(textos.length === 0){
-    showToast('Preencha pelo menos um campo de texto'); return;
+// ══ TINTA (agora item separado) ═══════════════════════════════════════════
+let tintaNoCarrinho = false;
+function toggleTintaItem(){
+  tintaNoCarrinho = !tintaNoCarrinho;
+  const card=document.getElementById('tintaItemCard');
+  const check=document.getElementById('tintaItemCheck');
+  if(tintaNoCarrinho){
+    card.style.borderColor='#C9922A'; card.style.background='#221800';
+    check.style.background='#C9922A'; check.style.borderColor='#C9922A';
+    check.style.color='#000'; check.textContent='✓';
+  } else {
+    card.style.borderColor='#2A2A2A'; card.style.background='#1A1A1A';
+    check.style.background='transparent'; check.style.borderColor='#333';
+    check.textContent='';
   }
+}
+
+// ══ ADICIONAR AO CARRINHO ═════════════════════════════════════════════════
+function adicionarAoCarrinho(){
+  const textos=state.textos.filter(t=>t.trim());
+  if(!state.tamanho){ showToast('Selecione um tamanho'); return; }
+  if(!textos.length){ showToast('Preencha pelo menos um campo de texto'); return; }
+
+  const wp=document.getElementById('clienteWhatsApp')?.value.trim();
+  if(!wp||wp.replace(/\D/g,'').length<10){ showToast('Informe o WhatsApp para contato'); return; }
+
+  carrinho.push({
+    tamanho: state.tamanho,
+    categoria: state.categoria,
+    layout: state.layout,
+    textos: [...state.textos],
+    preco: state.preco,
+    tinta: tintaNoCarrinho,
+    whatsapp: wp,
+  });
+
+  atualizarCarrinhoUI();
+  showToast('✅ Adicionado ao carrinho!');
+
+  // Resetar para adicionar outro
+  document.querySelectorAll('.size-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('layoutCard').style.display='none';
+  state.tamanho=null; state.textos=[]; state.preco=0; state.tinta=false;
+  tintaNoCarrinho=false;
+  const ti=document.getElementById('tintaItemCard');
+  if(ti){ ti.style.borderColor='#2A2A2A'; ti.style.background='#1A1A1A'; }
+  const tc=document.getElementById('tintaItemCheck');
+  if(tc){ tc.style.background='transparent'; tc.style.borderColor='#333'; tc.textContent=''; }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ══ IR PARA ENTREGA ═══════════════════════════════════════════════════════
+function irParaEntrega(){
+  if(!carrinho.length){ showToast('Adicione pelo menos um carimbo ao carrinho'); return; }
+  fecharCarrinho();
   irPara(2);
 }
 
-// ══ FRETE ═══════════════════════════════════════════════════════════════════
+// ══ FRETE ═════════════════════════════════════════════════════════════════
 function mascaraCep(el){
-  let v = el.value.replace(/\D/g,'');
-  if(v.length>5) v = v.slice(0,5)+'-'+v.slice(5,8);
-  el.value = v;
+  let v=el.value.replace(/\D/g,'');
+  if(v.length>5)v=v.slice(0,5)+'-'+v.slice(5,8);
+  el.value=v;
 }
 
-async function calcularFrete() {
-  const cep = document.getElementById('cepInput').value.replace(/\D/g,'');
-  if(cep.length !== 8){ showToast('CEP inválido — digite 8 dígitos'); return; }
-
-  const btn = document.getElementById('btnFrete');
-  btn.disabled = true; btn.textContent = 'Calculando...';
-
-  const result = document.getElementById('freteResult');
-
-  // Buscar endereço via ViaCEP
-  try {
-    const resp = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-    const data = await resp.json();
-    if(data.erro){ showToast('CEP não encontrado'); btn.disabled=false; btn.textContent='Calcular'; return; }
-
-    // Preencher campos de endereço
-    document.getElementById('endCep').value    = document.getElementById('cepInput').value;
-    document.getElementById('endCidade').value = `${data.localidade} — ${data.uf}`;
-    document.getElementById('endRua').value    = data.logradouro || '';
-    document.getElementById('endBairro').value = data.bairro || '';
-
-    // Calcular frete (simulado baseado na UF — sem API paga)
-    const uf = data.uf;
-    const fretes = calcularFretePorUF(uf);
-
-    result.innerHTML = '<div class="frete-opts">' +
+async function calcularFrete(){
+  const cep=document.getElementById('cepInput').value.replace(/\D/g,'');
+  if(cep.length!==8){showToast('CEP inválido — digite 8 dígitos');return;}
+  const btn=document.getElementById('btnFrete');
+  btn.disabled=true;btn.textContent='Calculando...';
+  const result=document.getElementById('freteResult');
+  try{
+    const resp=await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const data=await resp.json();
+    if(data.erro){showToast('CEP não encontrado');btn.disabled=false;btn.textContent='Calcular';return;}
+    document.getElementById('endCep').value=document.getElementById('cepInput').value;
+    document.getElementById('endCidade').value=`${data.localidade} — ${data.uf}`;
+    document.getElementById('endRua').value=data.logradouro||'';
+    document.getElementById('endBairro').value=data.bairro||'';
+    const fretes=calcularFretePorUF(data.uf);
+    result.innerHTML='<div class="frete-opts">'+
       fretes.map((f,i)=>`
         <div class="frete-card ${i===0?'selected':''}"
           data-preco="${f.preco}" data-nome="${f.nome}"
@@ -966,155 +1113,110 @@ async function calcularFrete() {
             <div class="frete-nome">${f.nome}</div>
             <div class="frete-prazo">Prazo estimado: ${f.prazo}</div>
           </div>
-          <div class="frete-preco">R$ ${f.preco.toFixed(2).replace('.',',')}</div>
-        </div>`).join('') + '</div>';
-
-    // Selecionar primeiro automaticamente
-    const primeiro = fretes[0];
-    state.frete = primeiro;
-    state.freteNome = primeiro.nome;
-    state.fretePreco = primeiro.preco;
-
-    document.getElementById('enderecoCard').style.display = 'block';
+          <div class="frete-preco">${f.preco===0?'Grátis':brl(f.preco)}</div>
+        </div>`).join('')+'</div>';
+    const primeiro=fretes[0];
+    state.frete=primeiro; state.freteNome=primeiro.nome; state.fretePreco=primeiro.preco;
+    document.getElementById('enderecoCard').style.display='block';
     document.getElementById('enderecoCard').scrollIntoView({behavior:'smooth',block:'nearest'});
-
-  } catch(e) {
-    result.innerHTML = '<div style="font-size:.82rem;color:var(--stamp)">Erro ao buscar CEP. Tente novamente.</div>';
+  }catch(e){
+    result.innerHTML='<div style="font-size:.82rem;color:var(--stamp)">Erro ao buscar CEP. Tente novamente.</div>';
   }
-
-  btn.disabled=false; btn.textContent='Calcular';
+  btn.disabled=false;btn.textContent='Calcular';
 }
 
-function calcularFretePorUF(uf) {
-  // Frete estimado por região — ajuste os valores com seu pai
-  const pr = uf === 'PR';
-  const sul = ['SC','RS'].includes(uf);
-  const sudeste = ['SP','RJ','MG','ES'].includes(uf);
-  const centro = ['MS','MT','GO','DF'].includes(uf);
-
-  let pac_preco, pac_prazo, sedex_preco, sedex_prazo;
-
-  if(pr){
-    pac_preco=14.50; pac_prazo='5 a 8 dias úteis';
-    sedex_preco=22.00; sedex_prazo='1 a 2 dias úteis';
-  } else if(sul){
-    pac_preco=16.00; pac_prazo='6 a 9 dias úteis';
-    sedex_preco=26.00; sedex_prazo='2 a 3 dias úteis';
-  } else if(sudeste){
-    pac_preco=18.00; pac_prazo='7 a 10 dias úteis';
-    sedex_preco=30.00; sedex_prazo='2 a 3 dias úteis';
-  } else if(centro){
-    pac_preco=20.00; pac_prazo='8 a 12 dias úteis';
-    sedex_preco=34.00; sedex_prazo='2 a 4 dias úteis';
-  } else {
-    pac_preco=24.00; pac_prazo='10 a 15 dias úteis';
-    sedex_preco=42.00; sedex_prazo='3 a 5 dias úteis';
-  }
-
-  return [
-    {nome:'PAC — Correios', preco:pac_preco, prazo:pac_prazo},
-    {nome:'SEDEX — Correios', preco:sedex_preco, prazo:sedex_prazo},
-    {nome:'Retirar na loja (Jandaia do Sul)', preco:0, prazo:'Combinar horário'},
+function calcularFretePorUF(uf){
+  const pr=uf==='PR';
+  const sul=['SC','RS'].includes(uf);
+  const sudeste=['SP','RJ','MG','ES'].includes(uf);
+  const centro=['MS','MT','GO','DF'].includes(uf);
+  let pp,pp2,sp,sp2;
+  if(pr){pp=14.50;pp2='5 a 8 dias úteis';sp=22.00;sp2='1 a 2 dias úteis';}
+  else if(sul){pp=16.00;pp2='6 a 9 dias úteis';sp=26.00;sp2='2 a 3 dias úteis';}
+  else if(sudeste){pp=18.00;pp2='7 a 10 dias úteis';sp=30.00;sp2='2 a 3 dias úteis';}
+  else if(centro){pp=20.00;pp2='8 a 12 dias úteis';sp=34.00;sp2='2 a 4 dias úteis';}
+  else{pp=24.00;pp2='10 a 15 dias úteis';sp=42.00;sp2='3 a 5 dias úteis';}
+  return[
+    {nome:'PAC — Correios',preco:pp,prazo:pp2},
+    {nome:'SEDEX — Correios',preco:sp,prazo:sp2},
+    {nome:'Retirar na loja (Jandaia do Sul)',preco:0,prazo:'Combinar horário'},
   ];
 }
 
 function selectFrete(el){
   document.querySelectorAll('.frete-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
-  state.freteNome  = el.dataset.nome;
-  state.fretePreco = parseFloat(el.dataset.preco);
-  state.frete      = {nome:state.freteNome, preco:state.fretePreco};
+  state.freteNome=el.dataset.nome;
+  state.fretePreco=parseFloat(el.dataset.preco);
+  state.frete={nome:state.freteNome,preco:state.fretePreco};
 }
 
-// ══ IR PARA PAGAMENTO ════════════════════════════════════════════════════════
-function irParaPagamento() {
-  const nome  = document.getElementById('endNome').value.trim();
-  const email = document.getElementById('endEmail').value.trim();
-  const rua   = document.getElementById('endRua').value.trim();
-  const cidade= document.getElementById('endCidade').value.trim();
-
-  if(!nome||!email||!rua||!cidade){
-    showToast('Preencha todos os campos obrigatórios'); return;
-  }
-  if(!email.includes('@')){
-    showToast('E-mail inválido'); return;
-  }
-  if(!state.frete){
-    showToast('Selecione uma opção de frete'); return;
-  }
-
-  state.endereco = {
-    nome, email,
-    tel:    document.getElementById('endTel').value,
-    cep:    document.getElementById('endCep').value,
+// ══ IR PARA PAGAMENTO ═════════════════════════════════════════════════════
+function irParaPagamento(){
+  const nome=document.getElementById('endNome').value.trim();
+  const email=document.getElementById('endEmail').value.trim();
+  const rua=document.getElementById('endRua').value.trim();
+  const cidade=document.getElementById('endCidade').value.trim();
+  if(!nome||!email||!rua||!cidade){showToast('Preencha todos os campos obrigatórios');return;}
+  if(!email.includes('@')){showToast('E-mail inválido');return;}
+  if(!state.frete){showToast('Selecione uma opção de frete');return;}
+  state.endereco={
+    nome,email,
+    tel:document.getElementById('endTel').value,
+    cep:document.getElementById('endCep').value,
     rua,
-    comp:   document.getElementById('endComp').value,
-    bairro: document.getElementById('endBairro').value,
+    comp:document.getElementById('endComp').value,
+    bairro:document.getElementById('endBairro').value,
     cidade,
   };
 
-  // Atualizar resumo
-  const total = state.preco + state.fretePreco;
-  const brl = v => 'R$ '+v.toFixed(2).replace('.',',');
+  // Montar resumo
+  const totalProd=carrinho.reduce((s,i)=>s+i.preco+(i.tinta?28:0),0);
+  const total=totalProd+state.fretePreco;
 
-  const textos = state.textos.filter(t=>t.trim());
-  document.getElementById('resumoStamp').innerHTML =
-    `<div style="font-weight:700;color:var(--ink);margin-bottom:4px">
-      Carimbo ${state.tamanho}mm</div>` +
-    textos.map(t=>`<div>${t}</div>`).join('');
+  // Itens do carrinho no resumo
+  let resumoHtml='';
+  carrinho.forEach((it,i)=>{
+    resumoHtml+=`<div style="font-weight:700;color:var(--ink);margin-bottom:2px;font-size:.82rem">
+      Item ${i+1}: Carimbo ${it.tamanho}mm</div>`;
+    resumoHtml+=`<div style="font-family:var(--font-m);font-size:.78rem;color:var(--gr);margin-bottom:${it.tinta?2:8}px">
+      ${it.textos.filter(t=>t.trim()).join(' | ')}</div>`;
+    if(it.tinta) resumoHtml+=`<div style="font-size:.75rem;color:var(--ink);margin-bottom:8px">+ Tinta para carimbo</div>`;
+  });
+  document.getElementById('resumoStamp').innerHTML=resumoHtml;
 
-  // Mostrar tinta no resumo se selecionada
-  document.getElementById('resumoTintaLinha').style.display = state.tinta ? 'flex' : 'none';
-
-  document.getElementById('resumoNomeProd').textContent =
-    `Carimbo ${state.tamanho}mm`;
-  document.getElementById('resumoProd').textContent = brl(state.preco);
-  // Linha tinta no resumo
-  const totalProd = state.preco + (state.tinta ? 28 : 0);
-  document.getElementById('resumoProd').textContent = 'R$ ' + totalProd.toFixed(2).replace('.',',');
-
-  document.getElementById('resumoNomeFrete').textContent = state.freteNome;
-  document.getElementById('resumoFrete').textContent =
-    state.fretePreco===0 ? 'Grátis' : brl(state.fretePreco);
-  document.getElementById('resumoTotal').textContent = brl(total);
-
-  // Pix
-  document.getElementById('pixChave').textContent = state.pixChave;
-  document.getElementById('pixValor').textContent = brl(total);
+  // Linhas de resumo
+  document.getElementById('resumoNomeProd').textContent=
+    `${carrinho.length} carimbo(s)`;
+  document.getElementById('resumoProd').textContent=brl(totalProd);
+  document.getElementById('resumoNomeFrete').textContent=state.freteNome;
+  document.getElementById('resumoFrete').textContent=
+    state.fretePreco===0?'Grátis':brl(state.fretePreco);
+  document.getElementById('resumoTotal').textContent=brl(total);
 
   irPara(3);
 }
 
-// ══ PAGAMENTO ═══════════════════════════════════════════════════════════════
-function selectPag(tipo){
-  state.pagamento = tipo;
-  document.getElementById('pagPix').classList.toggle('selected', tipo==='pix');
-  document.getElementById('pagCard').classList.toggle('selected', tipo==='cartao');
-  document.getElementById('pixSection').style.display   = tipo==='pix'    ? 'block':'none';
-  document.getElementById('cartaoSection').style.display= tipo==='cartao' ? 'block':'none';
-}
-
-function copiarPix(){
-  navigator.clipboard.writeText(state.pixChave).then(()=>{
-    showToast('Chave Pix copiada!');
-  });
-}
-
-// ══ CONFIRMAR PEDIDO — MERCADO PAGO ════════════════════════════════════════
+// ══ CONFIRMAR PEDIDO (Mercado Pago) ════════════════════════════════════════
 async function confirmarPedido(btn){
-  if(!btn) btn = document.getElementById('btnConfirmar');
-  btn.disabled = true;
-  btn.textContent = 'Processando...';
+  if(!btn)btn=document.getElementById('btnConfirmar');
+  btn.disabled=true;
+  btn.textContent='Processando...';
 
-  const textos = state.textos.filter(t=>t.trim());
+  const totalProd=carrinho.reduce((s,i)=>s+i.preco+(i.tinta?28:0),0);
+  const total=totalProd+state.fretePreco;
 
-  const payload = {
-    tamanho:     state.tamanho,
-    categoria:   state.categoria,
-    layout:      state.layout,
-    textos:      textos,
-    preco_prod:  state.preco + (state.tinta ? 28 : 0),
-    tinta:       state.tinta,
+  // Pegar WhatsApp do primeiro item (todos têm o mesmo)
+  const wpCliente = carrinho[0]?.whatsapp || '';
+
+  const payload={
+    itens: carrinho.map(it=>({
+      tamanho:it.tamanho, categoria:it.categoria,
+      layout:it.layout, textos:it.textos,
+      preco:it.preco, tinta:it.tinta,
+    })),
+    whatsapp_cliente: wpCliente,
+    preco_prod:  totalProd,
     frete_nome:  state.freteNome,
     frete_preco: state.fretePreco,
     end_nome:    state.endereco.nome,
@@ -1125,103 +1227,73 @@ async function confirmarPedido(btn){
     end_comp:    state.endereco.comp,
     end_bairro:  state.endereco.bairro,
     end_cidade:  state.endereco.cidade,
-    pagamento:   state.pagamento,
+    pagamento:   'mercadopago',
+    total:       total,
   };
 
-  try {
-    const resp = await fetch('/api/pedido', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload),
+  const enviar = async () => {
+    const resp=await fetch('/api/pedido',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload),
     });
-    const data = await resp.json();
+    return resp.json();
+  };
 
-    if(!data.ok){
+  try{
+    const data=await enviar();
+    if(data.ok&&data.checkout_url){
+      window.location.href=data.checkout_url;
+    } else {
       showToast('Erro ao processar pedido. Tente novamente.');
-      btn.disabled=false; btn.textContent='✓ Confirmar pedido';
-      return;
+      btn.disabled=false;btn.textContent='🔒 Pagar com Mercado Pago';
     }
-
-    // Redirecionar para o checkout do Mercado Pago
-    window.location.href = data.checkout_url;
-
-  } catch(e) {
-    console.error('Erro:', e);
-    // Render hibernando — aguardar e tentar várias vezes
-    let tentativa = 1;
-    let segundos = 35;
-    const intervalo = setInterval(()=>{
-      segundos--;
-      btn.textContent = `Conectando ao servidor... (${segundos}s)`;
-    }, 1000);
-
-    const tentar = async () => {
-      clearInterval(intervalo);
-      btn.textContent = `Tentando novamente (${tentativa}/3)...`;
-      tentativa++;
-      try {
-        const resp2 = await fetch('/api/pedido', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(payload),
-        });
-        const data2 = await resp2.json();
-        if(data2.ok && data2.checkout_url){
-          window.location.href = data2.checkout_url;
-        } else if(tentativa <= 3) {
-          setTimeout(tentar, 10000);
-        } else {
-          showToast('Não foi possível conectar. Tente novamente em alguns instantes.');
-          btn.disabled=false; btn.textContent='✓ Confirmar pedido';
-        }
-      } catch(e2) {
-        if(tentativa <= 3){
-          let s2 = 15;
-          const iv2 = setInterval(()=>{ s2--; btn.textContent=`Aguardando servidor... (${s2}s)`; },1000);
-          setTimeout(()=>{ clearInterval(iv2); tentar(); }, 15000);
-        } else {
-          showToast('Servidor demorou para responder. Tente novamente em 1 minuto.');
-          btn.disabled=false; btn.textContent='✓ Confirmar pedido';
-        }
+  }catch(e){
+    // Render hibernando — countdown e retry
+    let s=40;
+    const iv=setInterval(()=>{s--;btn.textContent=`Conectando... (${s}s)`;},1000);
+    setTimeout(async()=>{
+      clearInterval(iv);
+      try{
+        const data2=await enviar();
+        if(data2.ok&&data2.checkout_url) window.location.href=data2.checkout_url;
+        else{showToast('Tente novamente.');btn.disabled=false;btn.textContent='🔒 Pagar com Mercado Pago';}
+      }catch(e2){
+        showToast('Servidor indisponível. Aguarde 1 minuto e tente novamente.');
+        btn.disabled=false;btn.textContent='🔒 Pagar com Mercado Pago';
       }
-    };
-
-    setTimeout(tentar, 35000);
+    },40000);
   }
 }
 
-// ══ NAVEGAÇÃO ═══════════════════════════════════════════════════════════════
+// ══ NAVEGAÇÃO ═════════════════════════════════════════════════════════════
 function irPara(n){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec'+n).classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
-  // Steps
   for(let i=1;i<=4;i++){
-    const s = document.getElementById('s'+i);
+    const s=document.getElementById('s'+i);
     s.classList.remove('active','done');
-    if(i<n) s.classList.add('done');
-    else if(i===n) s.classList.add('active');
-    if(i<4){
-      const l=document.getElementById('l'+i);
-      l.classList.toggle('done', i<n);
-    }
+    if(i<n)s.classList.add('done');
+    else if(i===n)s.classList.add('active');
+    if(i<4){const l=document.getElementById('l'+i);l.classList.toggle('done',i<n);}
   }
 }
 
-// ══ MÁSCARAS ════════════════════════════════════════════════════════════════
+// ══ MÁSCARAS ══════════════════════════════════════════════════════════════
 function mascaraTel(el){
   let v=el.value.replace(/\D/g,'');
-  if(v.length>10) v=`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7,11)}`;
-  else if(v.length>6) v=`(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`;
-  else if(v.length>2) v=`(${v.slice(0,2)}) ${v.slice(2)}`;
-  else if(v.length>0) v=`(${v}`;
+  if(v.length>10)v=`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7,11)}`;
+  else if(v.length>6)v=`(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`;
+  else if(v.length>2)v=`(${v.slice(0,2)}) ${v.slice(2)}`;
+  else if(v.length>0)v=`(${v}`;
   el.value=v;
 }
 
-// ══ TOAST ════════════════════════════════════════════════════════════════════
+// ══ TOAST ═════════════════════════════════════════════════════════════════
 function showToast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
+  t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
 }
 </script>
