@@ -42,6 +42,24 @@ body{
   min-height:100vh;
 }
 
+
+/* ── Header nav ── */
+.header-nav-bar{
+  display:flex;gap:10px;justify-content:center;
+  margin-top:16px;
+}
+.header-nav-link{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 20px;border-radius:20px;
+  font-size:.8rem;font-weight:700;
+  text-decoration:none;border:1.5px solid #2A2A2A;
+  color:var(--gr);transition:all .15s;
+  font-family:var(--font-b);background:transparent;
+}
+.header-nav-link:hover{border-color:var(--ink);color:var(--ink)}
+.header-nav-link.active{
+  background:var(--ink);border-color:var(--ink);color:#000;
+}
 /* ── Textura de papel ── */
 body::before{
   content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
@@ -492,6 +510,10 @@ body::before{
       14 anos carimbando histórias em Jandaia do Sul — PR
     </span>
     <span style="font-size:1rem">🐱</span>
+  </div>
+  <div class="header-nav-bar">
+    <a class="header-nav-link active" href="/">🖋️ Carimbos</a>
+    <a class="header-nav-link" href="/moveis">🛋️ Móveis</a>
   </div>
 </header>
 
