@@ -181,7 +181,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 
-  <div class="shell">
+  <div id="aba-pedidos" class="shell">
 
     <!-- KPIs -->
     <div class="kpi-grid">
@@ -431,7 +431,7 @@ let abaAtual = 'pedidos';
 function mostrarAba(aba){
   abaAtual = aba;
   document.getElementById('aba-moveis').style.display = aba==='moveis' ? 'block' : 'none';
-  document.querySelector('.shell').style.display = aba==='pedidos' ? 'block' : 'none';
+  document.getElementById('aba-pedidos').style.display = aba==='pedidos' ? 'block' : 'none';
   document.getElementById('btn-aba-pedidos').style.color = aba==='pedidos' ? 'var(--ink)' : '';
   document.getElementById('btn-aba-pedidos').style.borderColor = aba==='pedidos' ? 'var(--ink)' : '';
   document.getElementById('btn-aba-moveis').style.color = aba==='moveis' ? 'var(--ink)' : '';
@@ -563,5 +563,56 @@ async function deletarMovel(id, nome){
 }
 
 </script>
+
+<div id="aba-moveis" style="display:none;max-width:1100px;margin:0 auto;padding:24px 20px 60px">
+
+  <!-- Adicionar móvel -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px">
+    <div style="font-size:.85rem;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px">+ Adicionar Móvel</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <label style="font-size:.72rem;color:var(--gr);font-weight:700;display:block;margin-bottom:4px">Nome do móvel *</label>
+        <input id="mv-nome" type="text" class="status-sel" style="width:100%;padding:10px 12px;font-size:.88rem" placeholder="Ex: Sofá 3 lugares, Mesa de jantar...">
+      </div>
+      <div>
+        <label style="font-size:.72rem;color:var(--gr);font-weight:700;display:block;margin-bottom:4px">Preço (R$) *</label>
+        <input id="mv-preco" type="number" class="status-sel" style="width:100%;padding:10px 12px;font-size:.88rem" placeholder="Ex: 850">
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:.72rem;color:var(--gr);font-weight:700;display:block;margin-bottom:4px">Descrição</label>
+      <textarea id="mv-desc" class="status-sel" rows="2" style="width:100%;padding:10px 12px;font-size:.88rem;resize:vertical" placeholder="Detalhes, dimensões, estado de conservação..."></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <label style="font-size:.72rem;color:var(--gr);font-weight:700;display:block;margin-bottom:4px">Condição</label>
+        <select id="mv-cond" class="status-sel" style="width:100%;padding:10px 12px">
+          <option value="usado">Usado</option>
+          <option value="novo">Novo</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.72rem;color:var(--gr);font-weight:700;display:block;margin-bottom:4px">Foto do móvel</label>
+        <input id="mv-foto-input" type="file" accept="image/*" onchange="carregarFoto(this)" style="display:none">
+        <button onclick="document.getElementById('mv-foto-input').click()" style="width:100%;padding:10px;background:transparent;border:1.5px dashed var(--border);color:var(--gr);border-radius:8px;cursor:pointer;font-family:var(--font);font-size:.82rem">📷 Escolher foto</button>
+      </div>
+    </div>
+    <div id="mv-foto-preview" style="display:none;margin-bottom:12px">
+      <img id="mv-foto-img" style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+      <button onclick="removerFoto()" style="margin-left:8px;background:transparent;border:none;color:#C0392B;cursor:pointer;font-size:.8rem">✕ Remover</button>
+    </div>
+    <button onclick="salvarMovel()" style="background:linear-gradient(135deg,#C9922A,#E8B84B);color:#000;border:none;border-radius:10px;padding:12px 28px;font-size:.88rem;font-weight:800;font-family:var(--font);cursor:pointer">Salvar móvel</button>
+  </div>
+
+  <!-- Lista -->
+  <div style="font-size:.72rem;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Móveis cadastrados</div>
+  <div class="tabela-wrap">
+    <table class="tabela">
+      <thead><tr><th>Foto</th><th>Nome</th><th>Preço</th><th>Condição</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
+      <tbody id="tabelaMoveis"><tr><td colspan="7" class="loading">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
 </body>
 </html>
