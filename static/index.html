@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1B3A5C">
+<title>Balaio de Gato — Carimbos Personalizados</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --ink:    #C9922A;
+  --ink-l:  #E8B84B;
+  --ink-xl: #2A2010;
+  --stamp:  #C0392B;
+  --stamp-l:#E74C3C;
+  --stamp-xl:#3A1010;
+  --paper:  #141414;
+  --paper-d:#2A2A2A;
+  --paper-x:#1C1C1C;
+  --gold:   #C9922A;
+  --gold-l: #E8B84B;
+  --dark:   #F5F0E0;
+  --gr:     #C8B89A;
+  --gr-l:   #7A6A55;
+  --gr-x:   #222222;
+  --white:  #1A1A1A;
+  --font-d: 'Playfair Display', Georgia, serif;
+  --font-b: 'DM Sans', system-ui, sans-serif;
+  --font-m: 'DM Mono', monospace;
+  --sh:     0 2px 16px rgba(27,58,92,.1);
+  --sh-lg:  0 8px 40px rgba(27,58,92,.15);
+}
+
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font-b);
+  background:#0D0D0D;
+  color:var(--dark);
+  min-height:100vh;
+}
+
+/* ── Textura de papel ── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.15;
+}
+
+/* ── Shell ── */
+.shell{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:0 20px 60px}
+
+/* ── Header ── */
+.site-header{
+  text-align:center;padding:40px 20px 32px;
+  border-bottom:2px solid #2A2A2A;
+  margin-bottom:32px;
+  position:relative;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, #1f1500 0%, transparent 70%);
+}
+.site-header::after{
+  content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);
+  width:80px;height:3px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.header-eyebrow{
+  font-size:.7rem;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:8px;
+  opacity:.8;
+}
+.header-logo{
+  font-family:'Playfair Display',Georgia,serif;font-size:2.6rem;font-weight:700;
+  color:#F5F0E0;line-height:1.1;margin-bottom:4px;
+  text-shadow: 2px 2px 0 #8B6020, 3px 3px 0 #5A3A08, 0 0 20px rgba(201,146,42,.3);
+  letter-spacing:.02em;
+}
+.header-logo span{
+  color:var(--gold-l);
+  text-shadow: 2px 2px 0 #7A4A08, 3px 3px 0 #4A2A00, 0 0 16px rgba(232,184,75,.4);
+}
+.header-sub{font-size:.88rem;color:var(--gr);letter-spacing:.04em}
+
+/* ── Steps ── */
+.steps{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;margin-bottom:36px;
+}
+.step{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  flex:1;max-width:120px;
+}
+.step-num{
+  width:32px;height:32px;border-radius:50%;
+  border:2px solid #333;background:#1A1A1A;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;font-weight:700;color:#555;
+  transition:all .3s;
+}
+.step.active .step-num{background:var(--gold);border-color:var(--gold);color:#000}
+.step.done .step-num{background:var(--stamp);border-color:var(--stamp);color:#fff}
+.step-lbl{font-size:.62rem;font-weight:600;color:var(--gr-l);
+  text-transform:uppercase;letter-spacing:.06em;text-align:center}
+.step.active .step-lbl{color:var(--ink)}
+.step.done .step-lbl{color:var(--stamp)}
+.step-line{flex:1;height:2px;background:var(--paper-d);max-width:40px;margin-bottom:18px}
+.step-line.done{background:var(--stamp)}
+
+/* ── Sections ── */
+.section{display:none}
+.section.active{display:block;animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.section-title{
+  font-family:var(--font-d);font-size:1.5rem;font-weight:600;
+  color:var(--gold-l);margin-bottom:4px;
+}
+.section-sub{font-size:.88rem;color:var(--gr);margin-bottom:24px;line-height:1.5}
+
+/* ── Cards ── */
+.card{
+  background:#1A1A1A;border-radius:16px;
+  border:1px solid #2A2A2A;padding:20px;
+  box-shadow:0 2px 16px rgba(0,0,0,.4);margin-bottom:16px;
+}
+
+/* ── Seletor de tamanho ── */
+.size-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.size-card{
+  background:#1A1A1A;border:2px solid #2A2A2A;
+  border-radius:14px;padding:14px 12px;cursor:pointer;
+  transition:all .18s;-webkit-tap-highlight-color:transparent;
+  text-align:center;
+}
+.size-card:hover{border-color:var(--gold);background:#221800}
+.size-card.selected{border-color:var(--gold);background:#221800}
+.size-card.selected .size-name{color:var(--gold-l)}
+.size-visual{
+  margin:0 auto 8px;background:#0D0D0D;border:1.5px solid #333;color:#555;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.55rem;color:var(--gr-l);font-family:var(--font-m);
+  border-radius:3px;
+}
+.size-name{font-size:.82rem;font-weight:700;color:var(--dark);margin-bottom:2px}
+.size-dim{font-size:.7rem;color:var(--gr-l);font-family:var(--font-m);margin-bottom:4px}
+.size-price{font-size:1rem;font-weight:700;color:var(--stamp)}
+.size-tag{
+  display:inline-block;font-size:.62rem;font-weight:700;
+  padding:2px 8px;border-radius:10px;margin-top:4px;
+  background:#0D0D0D;color:var(--gr);
+  text-transform:uppercase;letter-spacing:.05em;
+}
+
+/* ── Layout selector ── */
+.layout-opts{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.layout-btn{
+  flex:1;min-width:120px;padding:12px 14px;border-radius:12px;
+  border:2px solid #2A2A2A;background:#111;
+  cursor:pointer;font-family:var(--font-b);font-size:.82rem;
+  font-weight:600;color:#888;transition:all .18s;text-align:center;
+}
+.layout-btn:hover{border-color:var(--gold)}
+.layout-btn.selected{border-color:var(--gold);background:#221800;color:var(--gold-l)}
+.layout-btn .layout-ico{font-size:1.2rem;display:block;margin-bottom:4px}
+
+/* ── Formulário ── */
+.form-group{margin-bottom:14px}
+.form-label{
+  display:block;font-size:.78rem;font-weight:600;
+  color:var(--gold);margin-bottom:5px;letter-spacing:.03em;
+}
+.form-label span{color:var(--gr-l);font-weight:400;font-size:.72rem;margin-left:4px}
+.form-input{
+  width:100%;padding:11px 14px;
+  background:#111;border:1.5px solid #333;
+  border-radius:10px;font-size:.9rem;font-family:var(--font-b);
+  color:#F5F0E0;outline:none;transition:border-color .15s,box-shadow .15s;
+  -webkit-appearance:none;
+}
+.form-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,146,42,.15)}
+.form-input::placeholder{color:#444}
+.form-input.mono{font-family:var(--font-m);letter-spacing:.05em}
+.char-count{font-size:.7rem;color:var(--gr-l);text-align:right;margin-top:3px}
+.char-count.warn{color:var(--stamp)}
+
+/* ── Preview do carimbo ── */
+.preview-wrap{
+  background:var(--white);border-radius:16px;
+  border:1px solid var(--paper-d);padding:24px;
+  box-shadow:var(--sh);margin-bottom:20px;
+}
+.preview-label{
+  font-size:.7rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--gr-l);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.preview-label::after{content:'';flex:1;height:1px;background:var(--paper-d)}
+
+/* Folha A4 simulada */
+.preview-sheet{
+  background:#F8F5EE;border:1px solid #DDD;
+  border-radius:4px;padding:28px;
+  box-shadow:2px 3px 20px rgba(0,0,0,.5);
+  position:relative;min-height:160px;
+  display:flex;align-items:center;justify-content:center;
+}
+.preview-sheet::before{
+  content:'A4';position:absolute;top:6px;right:8px;
+  font-size:.6rem;color:#CCC;font-family:var(--font-m);
+}
+
+/* O carimbo em si */
+.stamp-preview{
+  border:2.5px solid #1B3A5C;
+  padding:6px 10px;
+  display:inline-flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:2px;
+  position:relative;
+  background:rgba(255,255,255,0);
+}
+.stamp-preview::before,.stamp-preview::after{
+  content:'';position:absolute;
+  border:1px solid #1B3A5C;
+  top:2px;left:2px;right:2px;bottom:2px;
+  pointer-events:none;
+}
+.stamp-line{
+  font-family:var(--font-m);color:#1B3A5C;
+  text-align:center;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;line-height:1.2;
+  max-width:100%;
+}
+.stamp-line.bold{font-weight:700}
+.stamp-line.small{opacity:.75}
+.stamp-line.empty{color:var(--paper-d);font-style:italic}
+
+/* ── Frete ── */
+.cep-row{display:flex;gap:10px;align-items:flex-end}
+.cep-row .form-input{max-width:180px}
+.btn-cep{
+  padding:11px 18px;background:var(--gold);color:#000;border:none;
+  border-radius:10px;font-size:.85rem;font-weight:700;
+  font-family:var(--font-b);cursor:pointer;white-space:nowrap;
+  transition:background .15s;
+}
+.btn-cep:hover{background:var(--gold-l)}
+.btn-cep:disabled{background:#333;cursor:not-allowed;color:#555}
+
+.frete-opts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.frete-card{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:12px;
+  border:1.5px solid #2A2A2A;background:#111;
+  cursor:pointer;transition:all .18s;
+}
+.frete-card:hover{border-color:var(--gold)}
+.frete-card.selected{border-color:var(--gold);background:#221800}
+.frete-radio{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--paper-d);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.frete-card.selected .frete-radio{border-color:var(--ink)}
+.frete-radio-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--ink);display:none;
+}
+.frete-card.selected .frete-radio-dot{display:block}
+.frete-info{flex:1}
+.frete-nome{font-size:.88rem;font-weight:700;color:var(--dark)}
+.frete-prazo{font-size:.75rem;color:var(--gr)}
+.frete-preco{font-size:.95rem;font-weight:700;color:var(--ink)}
+
+/* ── Resumo ── */
+.resumo-linha{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--paper-d);
+  font-size:.88rem;
+}
+.resumo-linha:last-child{border-bottom:none}
+.resumo-linha.total{
+  font-weight:700;font-size:1rem;color:var(--ink);
+  padding-top:14px;border-bottom:none;
+}
+.resumo-stamp-preview{
+  background:#0D0D0D;border-radius:10px;padding:14px;
+  margin-bottom:14px;font-size:.82rem;color:var(--gr);
+  font-family:var(--font-m);line-height:1.6;
+}
+
+/* ── Pagamento ── */
+.pag-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.pag-card{
+  padding:16px;border-radius:14px;border:2px solid #2A2A2A;
+  background:#111;cursor:pointer;text-align:center;transition:all .18s;
+}
+.pag-card:hover{border-color:var(--gold)}
+.pag-card.selected{border-color:var(--gold);background:#221800}
+.pag-ico{font-size:1.8rem;margin-bottom:6px}
+.pag-nome{font-size:.82rem;font-weight:700;color:var(--dark)}
+.pag-sub{font-size:.7rem;color:var(--gr);margin-top:2px}
+
+/* Pix */
+.pix-box{
+  background:#0D0D0D;border-radius:12px;padding:20px;
+  text-align:center;border:1.5px dashed var(--paper-d);
+}
+.pix-chave-label{font-size:.72rem;font-weight:700;color:var(--gr);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.pix-chave{
+  font-family:var(--font-m);font-size:1rem;font-weight:600;
+  color:var(--gold-l);background:#0D0D0D;border:1px solid #333;
+  border-radius:8px;padding:10px 14px;margin-bottom:10px;word-break:break-all;
+}
+.pix-valor{font-size:1.4rem;font-weight:700;color:var(--stamp);margin-bottom:4px}
+.pix-inst{font-size:.78rem;color:var(--gr);line-height:1.5;margin-bottom:14px}
+.btn-copy{
+  background:var(--gold);color:#000;border:none;border-radius:8px;
+  padding:9px 18px;font-size:.8rem;font-weight:700;
+  font-family:var(--font-b);cursor:pointer;transition:background .15s;
+}
+.btn-copy:hover{background:var(--gold-l)}
+
+/* ── Botões ── */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:14px;border-radius:12px;
+  font-size:.95rem;font-weight:700;cursor:pointer;
+  font-family:var(--font-b);border:none;transition:all .15s;
+  letter-spacing:.02em;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold-l) 100%);
+  color:#000;box-shadow:0 4px 16px rgba(201,146,42,.3);font-weight:800;
+}
+.btn-primary:hover{background:linear-gradient(135deg,var(--gold-l),#F5C85A)}
+.btn-primary:active{transform:scale(.98)}
+.btn-outline{background:transparent;color:var(--gold);border:2px solid var(--gold)}
+.btn-stamp{
+  background:linear-gradient(135deg,var(--stamp),#E74C3C);
+  color:#fff;box-shadow:0 4px 16px rgba(192,57,43,.35);font-weight:800;
+}
+.btn-stamp:hover{background:linear-gradient(135deg,#E74C3C,#F55)}
+.btn-nav{display:flex;gap:10px;margin-top:8px}
+.btn-nav .btn{flex:1}
+
+/* ── Sucesso ── */
+.success-box{
+  text-align:center;padding:48px 24px;
+}
+.success-ico{font-size:4rem;margin-bottom:16px;animation:bounce .6s ease}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.success-title{
+  font-family:var(--font-d);font-size:1.8rem;font-weight:700;
+  color:var(--gold-l);margin-bottom:8px;
+}
+.success-sub{font-size:.9rem;color:var(--gr);line-height:1.6;max-width:360px;margin:0 auto 24px}
+.success-num{
+  font-family:var(--font-m);font-size:.9rem;color:var(--gr-l);
+  background:#0D0D0D;border-radius:8px;padding:8px 16px;
+  display:inline-block;margin-bottom:24px;
+}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:#000;padding:10px 22px;
+  border-radius:20px;font-size:.82rem;font-weight:700;
+  z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;
+  white-space:nowrap;
+}
+.toast.show{opacity:1}
+
+/* ── Responsive ── */
+@media(max-width:480px){
+  .size-grid{grid-template-columns:1fr 1fr}
+  .pag-opts{grid-template-columns:1fr 1fr}
+  .header-logo{font-size:1.9rem}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="header-eyebrow">✦ Desde 2010 ✦</div>
+  <h1 class="header-logo">Balaio de <span>Gato</span></h1>
+  <div class="header-sub">Carimbos feitos com capricho</div>
+  <div style="margin-top:12px;display:inline-flex;align-items:center;gap:10px;
+    background:rgba(201,146,42,.1);border:1px solid rgba(201,146,42,.25);
+    border-radius:20px;padding:7px 18px">
+    <span style="font-size:1rem">🐱</span>
+    <span style="font-size:.78rem;color:#C9922A;font-weight:700;letter-spacing:.04em">
+      14 anos carimbando histórias em Jandaia do Sul — PR
+    </span>
+    <span style="font-size:1rem">🐱</span>
+  </div>
+</header>
+
+<!-- ── STEPS ── -->
+<div class="steps" id="stepsBar">
+  <div class="step active" id="s1"><div class="step-num">1</div><div class="step-lbl">Carimbo</div></div>
+  <div class="step-line" id="l1"></div>
+  <div class="step" id="s2"><div class="step-num">2</div><div class="step-lbl">Entrega</div></div>
+  <div class="step-line" id="l2"></div>
+  <div class="step" id="s3"><div class="step-num">3</div><div class="step-lbl">Pagamento</div></div>
+  <div class="step-line" id="l3"></div>
+  <div class="step" id="s4"><div class="step-num">4</div><div class="step-lbl">Confirmação</div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SEÇÃO 1 — CONFIGURAR CARIMBO
+════════════════════════════════════════════════════════════ -->
+<div class="section active" id="sec1">
+  <div class="section-title">Monte seu carimbo</div>
+  <div class="section-sub">Escolha o tamanho, o modelo e preencha o texto.</div>
+
+  <!-- Seletor de tamanho -->
+  <div class="card">
+    <div class="form-label" style="margin-bottom:12px">Escolha o tamanho</div>
+    <div class="size-grid" id="sizeGrid">
+
+      <div class="size-card" data-size="24x08" data-price="58" data-cat="pequeno" data-lines="2" onclick="selectSize(this)">
+        <div class="size-visual" style="width:72px;height:24px">24×8</div>
+        <div class="size-name">Pequeno I</div>
+        <div class="size-dim">24 × 8 mm</div>
+        <div class="size-price">R$ 58,00</div>
+        <div class="size-tag">Pequeno</div>
+      </div>
+
+      <div class="size-card" data-size="36x12" data-price="60" data-cat="pequeno" data-lines="2" onclick="selectSize(this)">
+        <div class="size-visual" style="width:90px;height:30px">36×12</div>
+        <div class="size-name">Pequeno II</div>
+        <div class="size-dim">36 × 12 mm</div>
+        <div class="size-price">R$ 60,00</div>
+        <div class="size-tag">Pequeno</div>
+      </div>
+
+      <div class="size-card" data-size="45x16" data-price="70" data-cat="medio" data-lines="3" onclick="selectSize(this)">
+        <div class="size-visual" style="width:110px;height:38px">45×16</div>
+        <div class="size-name">Médio</div>
+        <div class="size-dim">45 × 16 mm</div>
+        <div class="size-price">R$ 70,00</div>
+        <div class="size-tag">Médio</div>
+      </div>
+
+      <div class="size-card" data-size="56x20" data-price="75" data-cat="grande" data-lines="4" onclick="selectSize(this)">
+        <div class="size-visual" style="width:130px;height:46px">56×20</div>
+        <div class="size-name">Grande</div>
+        <div class="size-dim">56 × 20 mm</div>
+        <div class="size-price">R$ 75,00</div>
+        <div class="size-tag">Grande</div>
+      </div>
+
+      <div class="size-card" data-size="60x40" data-price="95" data-cat="cnpj" data-lines="4" onclick="selectSize(this)">
+        <div class="size-visual" style="width:120px;height:80px">60×40</div>
+        <div class="size-name">CNPJ</div>
+        <div class="size-dim">60 × 40 mm</div>
+        <div class="size-price">R$ 95,00</div>
+        <div class="size-tag">CNPJ</div>
+      </div>
+
+      <div class="size-card" data-size="38x38" data-price="85" data-cat="quadrado" data-lines="1" onclick="selectSize(this)">
+        <div class="size-visual" style="width:76px;height:76px">38×38</div>
+        <div class="size-name">Quadrado</div>
+        <div class="size-dim">38 × 38 mm</div>
+        <div class="size-price">R$ 85,00</div>
+        <div class="size-tag">Quadrado</div>
+      </div>
+
+      <div class="size-card" data-size="70x10" data-price="75" data-cat="comprido" data-lines="2" onclick="selectSize(this)" style="grid-column:span 2">
+        <div class="size-visual" style="width:160px;height:22px;margin:0 auto">70×10</div>
+        <div class="size-name">Comprido</div>
+        <div class="size-dim">70 × 10 mm</div>
+        <div class="size-price">R$ 75,00</div>
+        <div class="size-tag">Comprido</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Layout -->
+  <div class="card" id="layoutCard" style="display:none">
+    <div class="form-label" style="margin-bottom:12px">Escolha o modelo</div>
+    <div class="layout-opts" id="layoutOpts"></div>
+
+    <!-- Campos de texto -->
+    <div id="camposTexto"></div>
+
+    <!-- Preview -->
+    <div class="preview-wrap">
+      <div class="preview-label">Visualização em folha A4</div>
+      <div class="preview-sheet">
+        <div class="stamp-preview" id="stampPreview">
+          <div class="stamp-line empty">Preencha os campos acima</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="irParaEntrega()">
+      Continuar — Dados de entrega →
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SEÇÃO 2 — ENTREGA
+════════════════════════════════════════════════════════════ -->
+<div class="section" id="sec2">
+  <div class="section-title">Dados de entrega</div>
+  <div class="section-sub">Calcule o frete e informe o endereço completo.</div>
+
+  <div class="card">
+    <div class="form-label">Calcular frete</div>
+    <div class="cep-row">
+      <input type="text" class="form-input mono" id="cepInput"
+        placeholder="00000-000" maxlength="9"
+        oninput="mascaraCep(this)" onkeypress="if(event.key==='Enter')calcularFrete()">
+      <button class="btn-cep" id="btnFrete" onclick="calcularFrete()">Calcular</button>
+    </div>
+    <div id="freteResult" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card" id="enderecoCard" style="display:none">
+    <div class="form-label" style="margin-bottom:14px">Endereço completo</div>
+    <div class="form-group">
+      <label class="form-label">Nome completo</label>
+      <input type="text" class="form-input" id="endNome" placeholder="Seu nome completo" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">E-mail <span>para confirmação do pedido</span></label>
+      <input type="email" class="form-input" id="endEmail" placeholder="seu@email.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Telefone</label>
+      <input type="tel" class="form-input mono" id="endTel"
+        placeholder="(00) 00000-0000" maxlength="15"
+        oninput="mascaraTel(this)" autocomplete="tel">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">CEP</label>
+        <input type="text" class="form-input mono" id="endCep" placeholder="00000-000" maxlength="9" readonly>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Cidade / UF</label>
+        <input type="text" class="form-input" id="endCidade" placeholder="Cidade — UF">
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:10px">
+      <label class="form-label">Rua e número</label>
+      <input type="text" class="form-input" id="endRua" placeholder="Rua, número" autocomplete="street-address">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Complemento <span>opcional</span></label>
+      <input type="text" class="form-input" id="endComp" placeholder="Apto, bloco, referência...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Bairro</label>
+      <input type="text" class="form-input" id="endBairro" placeholder="Bairro">
+    </div>
+
+    <div class="btn-nav">
+      <button class="btn btn-outline" onclick="irPara(1)">← Voltar</button>
+      <button class="btn btn-primary" onclick="irParaPagamento()">Continuar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SEÇÃO 3 — PAGAMENTO
+════════════════════════════════════════════════════════════ -->
+<div class="section" id="sec3">
+  <div class="section-title">Pagamento</div>
+  <div class="section-sub">Revise seu pedido e escolha como pagar.</div>
+
+  <!-- Resumo -->
+  <div class="card">
+    <div class="form-label" style="margin-bottom:12px">Resumo do pedido</div>
+    <div class="resumo-stamp-preview" id="resumoStamp"></div>
+    <div class="resumo-linha">
+      <span id="resumoNomeProd">Carimbo</span>
+      <span id="resumoProd">—</span>
+    </div>
+    <div class="resumo-linha">
+      <span id="resumoNomeFrete">Frete</span>
+      <span id="resumoFrete">—</span>
+    </div>
+    <div class="resumo-linha total">
+      <span>Total</span>
+      <span id="resumoTotal">—</span>
+    </div>
+  </div>
+
+  <!-- Forma de pagamento -->
+  <div class="card">
+    <div class="form-label" style="margin-bottom:12px">Forma de pagamento</div>
+    <div class="pag-opts">
+      <div class="pag-card selected" id="pagPix" onclick="selectPag('pix')">
+        <div class="pag-ico">📱</div>
+        <div class="pag-nome">Pix</div>
+        <div class="pag-sub">Aprovação imediata</div>
+      </div>
+      <div class="pag-card" id="pagCard" onclick="selectPag('cartao')">
+        <div class="pag-ico">💳</div>
+        <div class="pag-nome">Cartão</div>
+        <div class="pag-sub">Crédito / Débito</div>
+      </div>
+    </div>
+
+    <!-- Pix -->
+    <div id="pixSection">
+      <div class="pix-box">
+        <div class="pix-chave-label">Chave Pix</div>
+        <div class="pix-chave" id="pixChave">carregando...</div>
+        <div class="pix-valor" id="pixValor">R$ 0,00</div>
+        <div class="pix-inst">
+          Copie a chave, abra o app do seu banco,<br>
+          escolha <strong>Pix → Pagar → Chave</strong> e cole o valor exato.
+        </div>
+        <button class="btn-copy" onclick="copiarPix()">📋 Copiar chave Pix</button>
+      </div>
+      <div style="margin-top:14px;padding:12px 14px;background:var(--stamp-xl);
+        border-left:3px solid var(--stamp);border-radius:8px;
+        font-size:.8rem;color:var(--dark);line-height:1.5">
+        ⚠️ <strong>Importante:</strong> após o pagamento, clique em "Confirmar pedido" abaixo.
+        Seu pedido será produzido após a confirmação do pagamento.
+      </div>
+    </div>
+
+    <!-- Cartão -->
+    <div id="cartaoSection" style="display:none">
+      <div style="padding:20px;text-align:center;background:#0D0D0D;border-radius:12px">
+        <div style="font-size:.88rem;color:var(--gr);line-height:1.6">
+          Você será redirecionado para o ambiente seguro do<br>
+          <strong>Mercado Pago</strong> para inserir os dados do cartão.
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-nav" style="margin-top:16px">
+      <button class="btn btn-outline" onclick="irPara(2)">← Voltar</button>
+      <button class="btn btn-stamp" onclick="confirmarPedido()">
+        ✓ Confirmar pedido
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SEÇÃO 4 — CONFIRMAÇÃO
+════════════════════════════════════════════════════════════ -->
+<div class="section" id="sec4">
+  <div class="success-box">
+    <div class="success-ico">🎉</div>
+    <h2 class="success-title">Pedido recebido!</h2>
+    <p class="success-sub">
+      Seu carimbo está na fila de produção. Você receberá uma confirmação
+      no e-mail informado. Qualquer dúvida, entre em contato conosco.
+    </p>
+    <div class="success-num" id="pedidoNum"></div>
+    <div style="font-size:.82rem;color:var(--gr);line-height:1.7">
+      📍 Balaio de Gato — Carimbos<br>
+      Jandaia do Sul — PR<br>
+      <strong>WhatsApp:</strong> (43) 99690-5591
+    </div>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ ESTADO ══════════════════════════════════════════════════════════════════
+const state = {
+  tamanho: null, categoria: null, linhasMax: 2,
+  preco: 0, layout: 'modelo',
+  textos: [],
+  frete: null, freteNome: '', fretePreco: 0,
+  endereco: {},
+  pagamento: 'pix',
+  pixChave: '14163584000120', // chave Pix do seu pai — ajuste aqui
+};
+
+// ══ LAYOUTS POR CATEGORIA ════════════════════════════════════════════════════
+const LAYOUTS = {
+  pequeno: [
+    { id:'modelo', nome:'Modelo', ico:'📋',
+      campos:[
+        {id:'l1', label:'Nome', placeholder:'Ex: João da Silva', max:30, bold:true},
+        {id:'l2', label:'Cargo ou CPF', placeholder:'Ex: Diretor | CPF: 000.000.000-00', max:35},
+      ]},
+    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
+  ],
+  medio: [
+    { id:'modelo', nome:'Modelo', ico:'📋',
+      campos:[
+        {id:'l1', label:'Nome', placeholder:'Ex: Maria Oliveira', max:30, bold:true},
+        {id:'l2', label:'Cargo ou CPF', placeholder:'Ex: Contadora | CPF: 000.000.000-00', max:35},
+        {id:'l3', label:'Informação adicional', placeholder:'Ex: (43) 99999-9999', max:40},
+      ]},
+    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
+  ],
+  grande: [
+    { id:'modelo', nome:'Modelo', ico:'📋',
+      campos:[
+        {id:'l1', label:'Nome', placeholder:'Ex: Carlos Pereira', max:30, bold:true},
+        {id:'l2', label:'Cargo ou CPF', placeholder:'Ex: Advogado | OAB 00000', max:35},
+        {id:'l3', label:'Informação adicional', placeholder:'Ex: (43) 99999-9999', max:40},
+        {id:'l4', label:'Informação adicional', placeholder:'Ex: Jandaia do Sul — PR', max:40},
+      ]},
+    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
+  ],
+  cnpj: [
+    { id:'modelo', nome:'Modelo CNPJ', ico:'🏢',
+      campos:[
+        {id:'l1', label:'CNPJ', placeholder:'00.000.000/0001-00', max:25, bold:true},
+        {id:'l2', label:'Razão Social', placeholder:'Nome da empresa Ltda.', max:40},
+        {id:'l3', label:'Endereço e Cidade', placeholder:'Rua X, 123 — Jandaia do Sul/PR', max:45},
+      ]},
+    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
+  ],
+  quadrado: [
+    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
+  ],
+  comprido: [
+    { id:'livre', nome:'Livre', ico:'✏️', campos:[] },
+  ],
+};
+
+// ══ CAMPOS LIVRES POR CATEGORIA ══════════════════════════════════════════════
+function getCamposLivres(cat, linhasMax) {
+  const campos = [];
+  for(let i=1; i<=linhasMax; i++){
+    campos.push({
+      id:`livre${i}`, label:`Linha ${i}`,
+      placeholder:`Texto da linha ${i}`,
+      max: cat==='quadrado' ? 12 : cat==='comprido' ? 40 : 35,
+    });
+  }
+  return campos;
+}
+
+// ══ SELECIONAR TAMANHO ══════════════════════════════════════════════════════
+function selectSize(el) {
+  document.querySelectorAll('.size-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.tamanho = el.dataset.size;
+  state.categoria = el.dataset.cat;
+  state.linhasMax = parseInt(el.dataset.lines);
+  state.preco = parseInt(el.dataset.price);
+  state.layout = 'modelo';
+  state.textos = [];
+  renderLayout();
+  document.getElementById('layoutCard').style.display='block';
+  document.getElementById('layoutCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ══ RENDERIZAR LAYOUT ════════════════════════════════════════════════════════
+function renderLayout() {
+  const cat = state.categoria;
+  const layouts = LAYOUTS[cat] || [];
+  const optsEl = document.getElementById('layoutOpts');
+  optsEl.innerHTML = '';
+  layouts.forEach(l=>{
+    const btn = document.createElement('div');
+    btn.className = 'layout-btn' + (state.layout===l.id?' selected':'');
+    btn.innerHTML = `<span class="layout-ico">${l.ico}</span>${l.nome}`;
+    btn.onclick = ()=>{ state.layout=l.id; renderLayout(); };
+    optsEl.appendChild(btn);
+  });
+
+  // Campos
+  const layout = layouts.find(l=>l.id===state.layout);
+  let campos = layout ? layout.campos : [];
+  if(state.layout==='livre' || campos.length===0) {
+    campos = getCamposLivres(cat, state.linhasMax);
+  }
+  renderCampos(campos);
+}
+
+// ══ RENDERIZAR CAMPOS ════════════════════════════════════════════════════════
+function renderCampos(campos) {
+  const el = document.getElementById('camposTexto');
+  el.innerHTML = '';
+  state.textos = new Array(campos.length).fill('');
+
+  campos.forEach((campo, i)=>{
+    const div = document.createElement('div');
+    div.className = 'form-group';
+    div.innerHTML = `
+      <label class="form-label">${campo.label}</label>
+      <input type="text" class="form-input mono" id="campo_${i}"
+        placeholder="${campo.placeholder}" maxlength="${campo.max}"
+        oninput="atualizarTexto(${i}, this.value, ${campo.max})">
+      <div class="char-count" id="cc_${i}">0 / ${campo.max}</div>`;
+    el.appendChild(div);
+  });
+
+  // Guardar campos para o preview
+  el._campos = campos;
+  atualizarPreview(campos);
+}
+
+// ══ ATUALIZAR TEXTO E PREVIEW ════════════════════════════════════════════════
+function atualizarTexto(i, val, max) {
+  state.textos[i] = val;
+  const cc = document.getElementById(`cc_${i}`);
+  cc.textContent = `${val.length} / ${max}`;
+  cc.className = 'char-count' + (val.length > max*0.85 ? ' warn' : '');
+
+  const el = document.getElementById('camposTexto');
+  atualizarPreview(el._campos);
+}
+
+// ══ PREVIEW DO CARIMBO ══════════════════════════════════════════════════════
+function atualizarPreview(campos) {
+  const prev = document.getElementById('stampPreview');
+
+  // Dimensões baseadas no tamanho escolhido
+  const dims = {
+    '24x08': {w:140,h:48}, '36x12': {w:180,h:58},
+    '45x16': {w:200,h:72}, '56x20': {w:220,h:88},
+    '60x40': {w:220,h:148},'38x38': {w:148,h:148},
+    '70x10': {w:260,h:42},
+  };
+  const d = dims[state.tamanho] || {w:180,h:70};
+  prev.style.width  = d.w+'px';
+  prev.style.height = d.h+'px';
+  prev.style.maxWidth = '100%';
+
+  // Font size baseado no tamanho
+  const baseFontSize = Math.min(d.w, d.h) < 50 ? 9 :
+                       Math.min(d.w, d.h) < 80 ? 11 : 13;
+
+  const textosFiltrados = state.textos.filter(t=>t.trim());
+  if(textosFiltrados.length === 0){
+    prev.innerHTML = '<div class="stamp-line empty" style="font-size:10px">Preencha os campos acima</div>';
+    return;
+  }
+
+  prev.innerHTML = '';
+  const isModelo = state.layout === 'modelo' && campos.length > 0;
+
+  state.textos.forEach((txt, i)=>{
+    if(!txt.trim()) return;
+    const div = document.createElement('div');
+    div.className = 'stamp-line' +
+      (isModelo && i===0 ? ' bold' : '') +
+      (isModelo && i===campos.length-1 ? ' small' : '');
+    div.style.fontSize = (i===0 && isModelo ? baseFontSize+2 : baseFontSize)+'px';
+    div.style.maxWidth = (d.w - 24)+'px';
+    div.textContent = txt;
+    prev.appendChild(div);
+  });
+}
+
+// ══ IR PARA ENTREGA ══════════════════════════════════════════════════════════
+function irParaEntrega() {
+  const textos = state.textos.filter(t=>t.trim());
+  if(textos.length === 0){
+    showToast('Preencha pelo menos um campo de texto'); return;
+  }
+  irPara(2);
+}
+
+// ══ FRETE ═══════════════════════════════════════════════════════════════════
+function mascaraCep(el){
+  let v = el.value.replace(/\D/g,'');
+  if(v.length>5) v = v.slice(0,5)+'-'+v.slice(5,8);
+  el.value = v;
+}
+
+async function calcularFrete() {
+  const cep = document.getElementById('cepInput').value.replace(/\D/g,'');
+  if(cep.length !== 8){ showToast('CEP inválido — digite 8 dígitos'); return; }
+
+  const btn = document.getElementById('btnFrete');
+  btn.disabled = true; btn.textContent = 'Calculando...';
+
+  const result = document.getElementById('freteResult');
+
+  // Buscar endereço via ViaCEP
+  try {
+    const resp = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const data = await resp.json();
+    if(data.erro){ showToast('CEP não encontrado'); btn.disabled=false; btn.textContent='Calcular'; return; }
+
+    // Preencher campos de endereço
+    document.getElementById('endCep').value    = document.getElementById('cepInput').value;
+    document.getElementById('endCidade').value = `${data.localidade} — ${data.uf}`;
+    document.getElementById('endRua').value    = data.logradouro || '';
+    document.getElementById('endBairro').value = data.bairro || '';
+
+    // Calcular frete (simulado baseado na UF — sem API paga)
+    const uf = data.uf;
+    const fretes = calcularFretePorUF(uf);
+
+    result.innerHTML = '<div class="frete-opts">' +
+      fretes.map((f,i)=>`
+        <div class="frete-card ${i===0?'selected':''}"
+          data-preco="${f.preco}" data-nome="${f.nome}"
+          onclick="selectFrete(this)">
+          <div class="frete-radio"><div class="frete-radio-dot"></div></div>
+          <div class="frete-info">
+            <div class="frete-nome">${f.nome}</div>
+            <div class="frete-prazo">Prazo estimado: ${f.prazo}</div>
+          </div>
+          <div class="frete-preco">R$ ${f.preco.toFixed(2).replace('.',',')}</div>
+        </div>`).join('') + '</div>';
+
+    // Selecionar primeiro automaticamente
+    const primeiro = fretes[0];
+    state.frete = primeiro;
+    state.freteNome = primeiro.nome;
+    state.fretePreco = primeiro.preco;
+
+    document.getElementById('enderecoCard').style.display = 'block';
+    document.getElementById('enderecoCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  } catch(e) {
+    result.innerHTML = '<div style="font-size:.82rem;color:var(--stamp)">Erro ao buscar CEP. Tente novamente.</div>';
+  }
+
+  btn.disabled=false; btn.textContent='Calcular';
+}
+
+function calcularFretePorUF(uf) {
+  // Frete estimado por região — ajuste os valores com seu pai
+  const pr = uf === 'PR';
+  const sul = ['SC','RS'].includes(uf);
+  const sudeste = ['SP','RJ','MG','ES'].includes(uf);
+  const centro = ['MS','MT','GO','DF'].includes(uf);
+
+  let pac_preco, pac_prazo, sedex_preco, sedex_prazo;
+
+  if(pr){
+    pac_preco=14.50; pac_prazo='5 a 8 dias úteis';
+    sedex_preco=22.00; sedex_prazo='1 a 2 dias úteis';
+  } else if(sul){
+    pac_preco=16.00; pac_prazo='6 a 9 dias úteis';
+    sedex_preco=26.00; sedex_prazo='2 a 3 dias úteis';
+  } else if(sudeste){
+    pac_preco=18.00; pac_prazo='7 a 10 dias úteis';
+    sedex_preco=30.00; sedex_prazo='2 a 3 dias úteis';
+  } else if(centro){
+    pac_preco=20.00; pac_prazo='8 a 12 dias úteis';
+    sedex_preco=34.00; sedex_prazo='2 a 4 dias úteis';
+  } else {
+    pac_preco=24.00; pac_prazo='10 a 15 dias úteis';
+    sedex_preco=42.00; sedex_prazo='3 a 5 dias úteis';
+  }
+
+  return [
+    {nome:'PAC — Correios', preco:pac_preco, prazo:pac_prazo},
+    {nome:'SEDEX — Correios', preco:sedex_preco, prazo:sedex_prazo},
+    {nome:'Retirar na loja (Jandaia do Sul)', preco:0, prazo:'Combinar horário'},
+  ];
+}
+
+function selectFrete(el){
+  document.querySelectorAll('.frete-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.freteNome  = el.dataset.nome;
+  state.fretePreco = parseFloat(el.dataset.preco);
+  state.frete      = {nome:state.freteNome, preco:state.fretePreco};
+}
+
+// ══ IR PARA PAGAMENTO ════════════════════════════════════════════════════════
+function irParaPagamento() {
+  const nome  = document.getElementById('endNome').value.trim();
+  const email = document.getElementById('endEmail').value.trim();
+  const rua   = document.getElementById('endRua').value.trim();
+  const cidade= document.getElementById('endCidade').value.trim();
+
+  if(!nome||!email||!rua||!cidade){
+    showToast('Preencha todos os campos obrigatórios'); return;
+  }
+  if(!email.includes('@')){
+    showToast('E-mail inválido'); return;
+  }
+  if(!state.frete){
+    showToast('Selecione uma opção de frete'); return;
+  }
+
+  state.endereco = {
+    nome, email,
+    tel:    document.getElementById('endTel').value,
+    cep:    document.getElementById('endCep').value,
+    rua,
+    comp:   document.getElementById('endComp').value,
+    bairro: document.getElementById('endBairro').value,
+    cidade,
+  };
+
+  // Atualizar resumo
+  const total = state.preco + state.fretePreco;
+  const brl = v => 'R$ '+v.toFixed(2).replace('.',',');
+
+  const textos = state.textos.filter(t=>t.trim());
+  document.getElementById('resumoStamp').innerHTML =
+    `<div style="font-weight:700;color:var(--ink);margin-bottom:4px">
+      Carimbo ${state.tamanho}mm</div>` +
+    textos.map(t=>`<div>${t}</div>`).join('');
+
+  document.getElementById('resumoNomeProd').textContent =
+    `Carimbo ${state.tamanho}mm`;
+  document.getElementById('resumoProd').textContent = brl(state.preco);
+  document.getElementById('resumoNomeFrete').textContent = state.freteNome;
+  document.getElementById('resumoFrete').textContent =
+    state.fretePreco===0 ? 'Grátis' : brl(state.fretePreco);
+  document.getElementById('resumoTotal').textContent = brl(total);
+
+  // Pix
+  document.getElementById('pixChave').textContent = state.pixChave;
+  document.getElementById('pixValor').textContent = brl(total);
+
+  irPara(3);
+}
+
+// ══ PAGAMENTO ═══════════════════════════════════════════════════════════════
+function selectPag(tipo){
+  state.pagamento = tipo;
+  document.getElementById('pagPix').classList.toggle('selected', tipo==='pix');
+  document.getElementById('pagCard').classList.toggle('selected', tipo==='cartao');
+  document.getElementById('pixSection').style.display   = tipo==='pix'    ? 'block':'none';
+  document.getElementById('cartaoSection').style.display= tipo==='cartao' ? 'block':'none';
+}
+
+function copiarPix(){
+  navigator.clipboard.writeText(state.pixChave).then(()=>{
+    showToast('Chave Pix copiada!');
+  });
+}
+
+// ══ CONFIRMAR PEDIDO — MERCADO PAGO ════════════════════════════════════════
+async function confirmarPedido(){
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Processando...';
+
+  const textos = state.textos.filter(t=>t.trim());
+
+  const payload = {
+    tamanho:     state.tamanho,
+    categoria:   state.categoria,
+    layout:      state.layout,
+    textos:      textos,
+    preco_prod:  state.preco,
+    frete_nome:  state.freteNome,
+    frete_preco: state.fretePreco,
+    end_nome:    state.endereco.nome,
+    end_email:   state.endereco.email,
+    end_tel:     state.endereco.tel,
+    end_cep:     state.endereco.cep,
+    end_rua:     state.endereco.rua,
+    end_comp:    state.endereco.comp,
+    end_bairro:  state.endereco.bairro,
+    end_cidade:  state.endereco.cidade,
+    pagamento:   state.pagamento,
+  };
+
+  try {
+    const resp = await fetch('/api/pedido', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+
+    if(!data.ok){
+      showToast('Erro ao processar pedido. Tente novamente.');
+      btn.disabled=false; btn.textContent='✓ Confirmar pedido';
+      return;
+    }
+
+    // Redirecionar para o checkout do Mercado Pago
+    window.location.href = data.checkout_url;
+
+  } catch(e) {
+    showToast('Erro de conexão. Tente novamente.');
+    btn.disabled=false; btn.textContent='✓ Confirmar pedido';
+  }
+}
+
+// ══ NAVEGAÇÃO ═══════════════════════════════════════════════════════════════
+function irPara(n){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  // Steps
+  for(let i=1;i<=4;i++){
+    const s = document.getElementById('s'+i);
+    s.classList.remove('active','done');
+    if(i<n) s.classList.add('done');
+    else if(i===n) s.classList.add('active');
+    if(i<4){
+      const l=document.getElementById('l'+i);
+      l.classList.toggle('done', i<n);
+    }
+  }
+}
+
+// ══ MÁSCARAS ════════════════════════════════════════════════════════════════
+function mascaraTel(el){
+  let v=el.value.replace(/\D/g,'');
+  if(v.length>10) v=`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7,11)}`;
+  else if(v.length>6) v=`(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`;
+  else if(v.length>2) v=`(${v.slice(0,2)}) ${v.slice(2)}`;
+  else if(v.length>0) v=`(${v}`;
+  el.value=v;
+}
+
+// ══ TOAST ════════════════════════════════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>
