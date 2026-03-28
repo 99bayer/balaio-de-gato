@@ -13,6 +13,7 @@ if DATABASE_URL.startswith("postgres://"):
 elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+pg8000://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50MB por request
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
@@ -524,6 +525,25 @@ def admin_movel_criar():
     db.session.add(m)
     db.session.commit()
     return jsonify({"ok": True, "id": m.id})
+
+@app.route("/api/admin/moveis/<int:mid>/foto", methods=["POST"])
+def admin_movel_add_foto(mid):
+    from flask import session
+    if not session.get("admin"):
+        return jsonify({"erro": "não autorizado"}), 401
+    m = Movel.query.get_or_404(mid)
+    data = request.get_json() or {}
+    foto = data.get("foto","")
+    if not foto:
+        return jsonify({"erro": "foto vazia"}), 400
+    try:
+        fotos = json.loads(m.fotos_json or "[]")
+    except Exception:
+        fotos = []
+    fotos.append(foto)
+    m.fotos_json = json.dumps(fotos, ensure_ascii=False)
+    db.session.commit()
+    return jsonify({"ok": True, "total": len(fotos)})
 
 @app.route("/api/admin/moveis/<int:mid>", methods=["POST"])
 def admin_movel_editar(mid):
