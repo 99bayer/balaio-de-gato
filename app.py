@@ -103,28 +103,32 @@ def criar_pedido():
 
     # Criar pedido no banco
     pedido = Pedido(
-        numero           = numero,
-        tamanho          = tamanho,
-        categoria        = categoria,
-        layout           = layout,
-        textos           = json.dumps(textos, ensure_ascii=False),
-        itens_json       = json.dumps(itens, ensure_ascii=False),
-        whatsapp_cliente = data.get("whatsapp_cliente",""),
-        preco_prod       = float(data["preco_prod"]),
-        frete_nome       = data.get("frete_nome"),
-        frete_preco      = float(data["frete_preco"]),
-        end_nome         = data.get("end_nome"),
-        end_email        = data.get("end_email"),
-        end_tel          = data.get("end_tel",""),
-        end_cep          = data.get("end_cep",""),
-        end_rua          = data.get("end_rua"),
-        end_comp         = data.get("end_comp",""),
-        end_bairro       = data.get("end_bairro",""),
-        end_cidade       = data.get("end_cidade"),
-        pagamento        = data.get("pagamento","mercadopago"),
-        tinta            = tinta,
-        total            = total,
+        numero      = numero,
+        tamanho     = tamanho,
+        categoria   = categoria,
+        layout      = layout,
+        textos      = json.dumps(textos, ensure_ascii=False),
+        preco_prod  = float(data["preco_prod"]),
+        frete_nome  = data.get("frete_nome"),
+        frete_preco = float(data["frete_preco"]),
+        end_nome    = data.get("end_nome"),
+        end_email   = data.get("end_email"),
+        end_tel     = data.get("end_tel",""),
+        end_cep     = data.get("end_cep",""),
+        end_rua     = data.get("end_rua"),
+        end_comp    = data.get("end_comp",""),
+        end_bairro  = data.get("end_bairro",""),
+        end_cidade  = data.get("end_cidade"),
+        pagamento   = data.get("pagamento","mercadopago"),
+        tinta       = tinta,
+        total       = total,
     )
+    # Campos novos — só atribui se a coluna existir (migration pode não ter rodado)
+    try:
+        pedido.itens_json       = json.dumps(itens, ensure_ascii=False)
+        pedido.whatsapp_cliente = data.get("whatsapp_cliente","")
+    except Exception:
+        pass
     db.session.add(pedido)
     db.session.commit()
 
@@ -134,13 +138,13 @@ def criar_pedido():
         "items": [{
             "title": f"{len(itens) if itens else 1} Carimbo(s) — Balaio de Gato",
             "quantity": 1,
-            "unit_price": total,
+            "unit_price": float(total),
             "currency_id": "BRL",
         }],
         "payer": {
             "name":  data.get("end_nome",""),
             "email": data.get("end_email",""),
-            "phone": {"number": data.get("end_tel","")},
+            "phone": {"number": data.get("end_tel","").replace("(","").replace(")","").replace(" ","").replace("-","")},
             "address": {
                 "street_name": data.get("end_rua",""),
                 "zip_code":    data.get("end_cep","").replace("-",""),
@@ -442,7 +446,19 @@ def api_moveis():
         q = q.filter_by(condicao=condicao)
     moveis = []
     for m in q.all():
-        fotos = json.loads(m.fotos_json or "[]")
+        # fotos_json pode não existir ainda — tratar com segurança
+        try:
+            fotos = json.loads(m.fotos_json or "[]")
+        except Exception:
+            fotos = []
+        # compatibilidade com coluna foto_base64 antiga
+        if not fotos:
+            try:
+                old_foto = getattr(m, "foto_base64", None)
+                if old_foto:
+                    fotos = [old_foto]
+            except Exception:
+                pass
         moveis.append({
             "id": m.id,
             "nome": m.nome,
@@ -462,12 +478,25 @@ def admin_moveis_list():
     if not session.get("admin"):
         return jsonify({"erro": "não autorizado"}), 401
     moveis = Movel.query.order_by(Movel.criado_em.desc()).all()
-    return jsonify({"moveis": [{
-        "id": m.id, "nome": m.nome, "preco": m.preco,
-        "condicao": m.condicao, "vendido": m.vendido,
-        "fotos": json.loads(m.fotos_json or "[]"),
-        "criado_em": m.criado_em.strftime("%d/%m/%Y") if m.criado_em else "",
-    } for m in moveis]})
+    result = []
+    for m in moveis:
+        try:
+            fotos = json.loads(m.fotos_json or "[]")
+        except Exception:
+            fotos = []
+        if not fotos:
+            try:
+                old_foto = getattr(m, "foto_base64", None)
+                if old_foto: fotos = [old_foto]
+            except Exception:
+                pass
+        result.append({
+            "id": m.id, "nome": m.nome, "preco": m.preco,
+            "condicao": m.condicao, "vendido": m.vendido,
+            "fotos": fotos,
+            "criado_em": m.criado_em.strftime("%d/%m/%Y") if m.criado_em else "",
+        })
+    return jsonify({"moveis": result})
 
 @app.route("/api/admin/moveis", methods=["POST"])
 def admin_movel_criar():
