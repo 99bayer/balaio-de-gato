@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — Balaio de Gato</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#C9922A;--ink-l:#E8B84B;
+  --bg:#0D0D0D;--bg2:#1A1A1A;--bg3:#222;
+  --border:#2A2A2A;--text:#F5F0E0;--gr:#9A8870;--gr-l:#5A5040;
+  --green:#27AE60;--red:#C0392B;--blue:#2E86AB;--orange:#E8682A;
+  --font:'DM Sans',system-ui,sans-serif;
+  --mono:'DM Mono',monospace;
+  --display:'Playfair Display',serif;
+}
+html{font-size:16px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LOGIN */
+.login-wrap{
+  min-height:100vh;display:flex;align-items:center;
+  justify-content:center;padding:24px;
+}
+.login-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:40px 32px;
+  width:100%;max-width:380px;text-align:center;
+}
+.login-logo{font-family:var(--display);font-size:1.8rem;color:var(--ink);margin-bottom:4px}
+.login-sub{font-size:.8rem;color:var(--gr);margin-bottom:28px}
+.login-input{
+  width:100%;padding:12px 16px;background:#111;
+  border:1.5px solid var(--border);border-radius:10px;
+  color:var(--text);font-size:.95rem;font-family:var(--font);
+  outline:none;margin-bottom:12px;-webkit-appearance:none;
+}
+.login-input:focus{border-color:var(--ink)}
+.login-btn{
+  width:100%;padding:13px;background:linear-gradient(135deg,var(--ink),var(--ink-l));
+  color:#000;border:none;border-radius:10px;font-size:.95rem;font-weight:700;
+  font-family:var(--font);cursor:pointer;
+}
+.login-erro{color:var(--red);font-size:.82rem;margin-top:8px}
+
+/* LAYOUT */
+.admin-wrap{display:none}
+.top-bar{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:14px 24px;display:flex;align-items:center;
+  justify-content:space-between;position:sticky;top:0;z-index:10;
+}
+.top-logo{font-family:var(--display);font-size:1.2rem;color:var(--ink)}
+.top-right{display:flex;align-items:center;gap:12px}
+.top-btn{
+  background:transparent;border:1px solid var(--border);
+  color:var(--gr);padding:7px 14px;border-radius:8px;
+  font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font);
+}
+.top-btn:hover{border-color:var(--ink);color:var(--ink)}
+
+.shell{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+
+/* KPIs */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+@media(min-width:600px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
+.kpi-lbl{font-size:.7rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--gr);margin-bottom:6px}
+.kpi-val{font-size:1.6rem;font-weight:700;color:var(--text);line-height:1}
+.kpi-val.green{color:var(--green)}.kpi-val.gold{color:var(--ink-l)}
+.kpi-val.red{color:var(--red)}
+
+/* FILTROS */
+.filtros{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filtro-btn{
+  padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);
+  background:transparent;color:var(--gr);font-size:.78rem;font-weight:600;
+  cursor:pointer;font-family:var(--font);transition:all .15s;
+}
+.filtro-btn.active{border-color:var(--ink);color:var(--ink);background:rgba(201,146,42,.1)}
+
+/* TABELA */
+.tabela-wrap{overflow-x:auto}
+.tabela{width:100%;border-collapse:collapse}
+.tabela th{
+  font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--gr);padding:10px 12px;text-align:left;
+  border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.tabela td{
+  padding:12px;border-bottom:1px solid var(--border);
+  font-size:.85rem;vertical-align:top;
+}
+.tabela tr:hover td{background:rgba(255,255,255,.02)}
+
+.badge{
+  display:inline-block;padding:3px 10px;border-radius:20px;
+  font-size:.7rem;font-weight:700;white-space:nowrap;
+}
+.badge.pago{background:rgba(39,174,96,.15);color:var(--green)}
+.badge.pendente{background:rgba(232,104,42,.15);color:var(--orange)}
+.badge.cancelado{background:rgba(192,57,43,.15);color:var(--red)}
+.badge.producao{background:rgba(46,134,171,.15);color:var(--blue)}
+.badge.enviado{background:rgba(201,146,42,.15);color:var(--ink-l)}
+
+.stamp-txt{font-family:var(--mono);font-size:.78rem;color:var(--ink-l);
+  line-height:1.5;white-space:pre-line}
+.end-txt{font-size:.78rem;color:var(--gr);line-height:1.5}
+.total-txt{font-size:.92rem;font-weight:700;color:var(--text);white-space:nowrap}
+
+.status-sel{
+  background:#111;border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:5px 8px;font-size:.75rem;font-family:var(--font);
+  cursor:pointer;outline:none;
+}
+.status-sel:focus{border-color:var(--ink)}
+
+.empty{text-align:center;padding:48px;color:var(--gr)}
+.loading{text-align:center;padding:48px;color:var(--gr)}
+
+/* MODAL DETALHE */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;
+}
+.modal-title{font-family:var(--display);font-size:1.3rem;color:var(--ink);margin-bottom:20px}
+.modal-row{display:flex;justify-content:space-between;padding:8px 0;
+  border-bottom:1px solid var(--border);font-size:.85rem}
+.modal-row:last-child{border-bottom:none}
+.modal-lbl{color:var(--gr)}
+.modal-val{color:var(--text);font-weight:600;text-align:right;max-width:60%}
+.modal-close{
+  background:transparent;border:1px solid var(--border);color:var(--gr);
+  padding:8px 18px;border-radius:8px;cursor:pointer;font-family:var(--font);
+  margin-top:20px;font-size:.82rem;
+}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:#000;padding:10px 22px;
+  border-radius:20px;font-size:.82rem;font-weight:700;
+  z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;
+}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">Balaio de Gato</div>
+    <div class="login-sub">Painel Administrativo</div>
+    <input type="password" class="login-input" id="senhaInput"
+      placeholder="Senha de acesso" onkeypress="if(event.key==='Enter')fazerLogin()">
+    <button class="login-btn" onclick="fazerLogin()">Entrar</button>
+    <div class="login-erro" id="loginErro"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="admin-wrap" id="adminWrap">
+
+  <div class="top-bar">
+    <div class="top-logo">🐱 Balaio de Gato — Admin</div>
+    <div class="top-right">
+      <button class="top-btn" onclick="carregarPedidos()">↻ Atualizar</button>
+      <button class="top-btn" onclick="sair()">Sair</button>
+    </div>
+  </div>
+
+  <div class="shell">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">Total de pedidos</div>
+        <div class="kpi-val" id="kTotal">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Pedidos pagos</div>
+        <div class="kpi-val green" id="kPagos">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Pendentes</div>
+        <div class="kpi-val red" id="kPendentes">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Faturamento</div>
+        <div class="kpi-val gold" id="kFaturamento">—</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros">
+      <button class="filtro-btn active" onclick="filtrar('')" id="f-todos">Todos</button>
+      <button class="filtro-btn" onclick="filtrar('pago')" id="f-pago">✅ Pagos</button>
+      <button class="filtro-btn" onclick="filtrar('pendente')" id="f-pendente">⏳ Pendentes</button>
+      <button class="filtro-btn" onclick="filtrar('producao')" id="f-producao">🔨 Em produção</button>
+      <button class="filtro-btn" onclick="filtrar('enviado')" id="f-enviado">📦 Enviados</button>
+      <button class="filtro-btn" onclick="filtrar('cancelado')" id="f-cancelado">❌ Cancelados</button>
+    </div>
+
+    <!-- Tabela -->
+    <div class="tabela-wrap">
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th>Data</th>
+            <th>Carimbo</th>
+            <th>Cliente</th>
+            <th>Entrega</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tabelaBody">
+          <tr><td colspan="8" class="loading">Carregando pedidos...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal detalhe -->
+<div class="modal-bg" id="modalBg" onclick="fecharModal(event)">
+  <div class="modal" id="modalContent">
+    <div class="modal-title" id="modalTitulo"></div>
+    <div id="modalLinhas"></div>
+    <button class="modal-close" onclick="fecharModal()">Fechar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let filtroAtual = '';
+let todosPedidos = [];
+
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+async function fazerLogin(){
+  const senha = document.getElementById('senhaInput').value;
+  if(!senha) return;
+  try {
+    const r = await fetch('/admin/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({senha})
+    });
+    if(r.ok){
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('adminWrap').style.display = 'block';
+      carregarPedidos();
+    } else {
+      document.getElementById('loginErro').textContent = 'Senha incorreta';
+    }
+  } catch(e){
+    document.getElementById('loginErro').textContent = 'Erro de conexão';
+  }
+}
+
+async function sair(){
+  await fetch('/admin/logout',{method:'POST'});
+  location.reload();
+}
+
+// ── CARREGAR PEDIDOS ─────────────────────────────────────────────────────────
+async function carregarPedidos(){
+  try {
+    const url = '/api/admin/pedidos' + (filtroAtual ? '?status='+filtroAtual : '');
+    const r = await fetch(url);
+    if(r.status===401){ location.reload(); return; }
+    const data = await r.json();
+    todosPedidos = data.pedidos;
+    renderKpis(data.resumo);
+    renderTabela(data.pedidos);
+  } catch(e){
+    document.getElementById('tabelaBody').innerHTML =
+      '<tr><td colspan="8" class="empty">Erro ao carregar pedidos</td></tr>';
+  }
+}
+
+function renderKpis(r){
+  document.getElementById('kTotal').textContent = r.total;
+  document.getElementById('kPagos').textContent = r.pagos;
+  document.getElementById('kPendentes').textContent = r.pendentes;
+  document.getElementById('kFaturamento').textContent =
+    'R$ ' + (r.faturamento||0).toFixed(2).replace('.',',');
+}
+
+function renderTabela(pedidos){
+  const tbody = document.getElementById('tabelaBody');
+  if(!pedidos.length){
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">Nenhum pedido encontrado</td></tr>';
+    return;
+  }
+  tbody.innerHTML = pedidos.map(p => `
+    <tr>
+      <td><span style="font-family:var(--mono);font-size:.78rem;color:var(--ink-l)">${p.numero}</span></td>
+      <td style="color:var(--gr);font-size:.78rem;white-space:nowrap">${p.criado_em}</td>
+      <td>
+        <div style="font-size:.78rem;color:var(--gr);margin-bottom:2px">${p.tamanho}mm — ${p.categoria}</div>
+        <div class="stamp-txt">${(p.textos||[]).join('\n')}</div>
+        ${p.tinta ? '<div style="font-size:.72rem;color:var(--ink);margin-top:3px">🖋️ + Tinta</div>' : ''}
+      </td>
+      <td>
+        <div style="font-weight:600;font-size:.85rem">${p.end_nome||'—'}</div>
+        <div class="end-txt">${p.end_email||''}<br>${p.end_tel||''}</div>
+      </td>
+      <td>
+        <div class="end-txt">
+          ${p.end_rua||''} ${p.end_comp||''}<br>
+          ${p.end_bairro||''}<br>
+          ${p.end_cidade||''}<br>
+          CEP: ${p.end_cep||''}
+        </div>
+        <div style="font-size:.72rem;color:var(--gr);margin-top:3px">${p.frete_nome||''}</div>
+      </td>
+      <td class="total-txt">R$ ${(p.total||0).toFixed(2).replace('.',',')}</td>
+      <td>
+        <select class="status-sel" onchange="atualizarStatus('${p.numero}', this.value)">
+          <option value="pendente"  ${p.status==='pendente'  ?'selected':''}>⏳ Pendente</option>
+          <option value="pago"      ${p.status==='pago'      ?'selected':''}>✅ Pago</option>
+          <option value="producao"  ${p.status==='producao'  ?'selected':''}>🔨 Em produção</option>
+          <option value="enviado"   ${p.status==='enviado'   ?'selected':''}>📦 Enviado</option>
+          <option value="cancelado" ${p.status==='cancelado' ?'selected':''}>❌ Cancelado</option>
+        </select>
+      </td>
+      <td>
+        <button onclick="verDetalhe('${p.numero}')"
+          style="background:transparent;border:1px solid var(--border);
+          color:var(--gr);padding:5px 10px;border-radius:6px;
+          cursor:pointer;font-size:.72rem;font-family:var(--font)">
+          Ver
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+// ── FILTROS ──────────────────────────────────────────────────────────────────
+function filtrar(status){
+  filtroAtual = status;
+  document.querySelectorAll('.filtro-btn').forEach(b=>b.classList.remove('active'));
+  const id = status ? 'f-'+status : 'f-todos';
+  document.getElementById(id)?.classList.add('active');
+  carregarPedidos();
+}
+
+// ── ATUALIZAR STATUS ─────────────────────────────────────────────────────────
+async function atualizarStatus(numero, status){
+  try {
+    const r = await fetch(`/api/admin/pedido/${numero}/status`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({status})
+    });
+    if(r.ok) showToast('✅ Status atualizado!');
+    else showToast('Erro ao atualizar');
+  } catch(e){ showToast('Erro de conexão'); }
+}
+
+// ── DETALHE ──────────────────────────────────────────────────────────────────
+function verDetalhe(numero){
+  const p = todosPedidos.find(x=>x.numero===numero);
+  if(!p) return;
+  document.getElementById('modalTitulo').textContent = `Pedido ${p.numero}`;
+  const brl = v => 'R$ '+(v||0).toFixed(2).replace('.',',');
+  const linhas = [
+    ['Status', `<span class="badge ${p.status}">${p.status}</span>`],
+    ['Data', p.criado_em],
+    ['Tamanho', `${p.tamanho}mm — ${p.categoria}`],
+    ['Texto do carimbo', `<span style="font-family:var(--mono);color:var(--ink-l)">${(p.textos||[]).join(' | ')}</span>`],
+    ['Tinta incluída', p.tinta ? '🖋️ Sim (+R$ 28,00)' : 'Não'],
+    ['—',''],
+    ['Cliente', p.end_nome],
+    ['E-mail', p.end_email],
+    ['Telefone', p.end_tel],
+    ['—',''],
+    ['CEP', p.end_cep],
+    ['Endereço', `${p.end_rua} ${p.end_comp||''}`],
+    ['Bairro', p.end_bairro],
+    ['Cidade', p.end_cidade],
+    ['—',''],
+    ['Frete', `${p.frete_nome} — ${brl(p.frete_preco)}`],
+    ['Carimbo', brl(p.total - p.frete_preco - (p.tinta?28:0))],
+    p.tinta ? ['Tinta', 'R$ 28,00'] : null,
+    ['Total pago', `<strong style="color:var(--ink-l)">${brl(p.total)}</strong>`],
+  ].filter(Boolean);
+
+  document.getElementById('modalLinhas').innerHTML = linhas.map(([l,v])=>
+    l==='—' ? '<hr style="border-color:var(--border);margin:8px 0">' :
+    `<div class="modal-row">
+      <span class="modal-lbl">${l}</span>
+      <span class="modal-val">${v||'—'}</span>
+    </div>`
+  ).join('');
+
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function fecharModal(e){
+  if(!e || e.target===document.getElementById('modalBg'))
+    document.getElementById('modalBg').classList.remove('open');
+}
+
+// ── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
