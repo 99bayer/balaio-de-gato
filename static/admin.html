@@ -100,11 +100,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   display:inline-block;padding:3px 10px;border-radius:20px;
   font-size:.7rem;font-weight:700;white-space:nowrap;
 }
+
+/* Pipeline */
+.pipe-step{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:10px 16px;border-radius:10px;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--bg2);
+  min-width:90px;transition:all .15s;flex-shrink:0;
+}
+.pipe-step:hover{border-color:var(--ink);background:rgba(201,146,42,.05)}
+.pipe-step.active{border-color:var(--ink);background:rgba(201,146,42,.1)}
+.pipe-ico{font-size:1.2rem}
+.pipe-lbl{font-size:.68rem;font-weight:700;color:var(--gr);white-space:nowrap}
+.pipe-arrow{color:var(--gr-l);font-size:1rem;padding:0 4px;flex-shrink:0}
 .badge.pago{background:rgba(39,174,96,.15);color:var(--green)}
 .badge.novo{background:rgba(46,134,171,.15);color:var(--blue)}
 .badge.pendente{background:rgba(232,104,42,.15);color:var(--orange)}
 .badge.cancelado{background:rgba(192,57,43,.15);color:var(--red)}
 .badge.confeccao{background:rgba(201,146,42,.15);color:var(--ink-l)}
+.badge.pronto{background:rgba(46,134,171,.15);color:var(--blue)}
 .badge.producao{background:rgba(201,146,42,.15);color:var(--ink-l)}
 .badge.enviado{background:rgba(100,180,100,.15);color:#6DB86D}
 .badge.finalizado{background:rgba(39,174,96,.2);color:var(--green)}
@@ -188,32 +202,56 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
     <!-- KPIs -->
     <div class="kpi-grid">
-      <div class="kpi">
-        <div class="kpi-lbl">Total de pedidos</div>
-        <div class="kpi-val" id="kTotal">—</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-lbl">Pedidos pagos</div>
+      <div class="kpi" onclick="filtrar('pago')" style="cursor:pointer">
+        <div class="kpi-lbl">✅ Pagos / aguardando</div>
         <div class="kpi-val green" id="kPagos">—</div>
       </div>
-      <div class="kpi">
-        <div class="kpi-lbl">Pendentes</div>
-        <div class="kpi-val red" id="kPendentes">—</div>
+      <div class="kpi" onclick="filtrar('confeccao')" style="cursor:pointer">
+        <div class="kpi-lbl">🔨 Em confecção</div>
+        <div class="kpi-val gold" id="kConfeccao">—</div>
+      </div>
+      <div class="kpi" onclick="filtrar('pronto')" style="cursor:pointer">
+        <div class="kpi-lbl">📋 Prontos p/ envio</div>
+        <div class="kpi-val" id="kProntos" style="color:var(--blue)">—</div>
       </div>
       <div class="kpi">
-        <div class="kpi-lbl">Faturamento</div>
+        <div class="kpi-lbl">💰 Faturamento</div>
         <div class="kpi-val gold" id="kFaturamento">—</div>
       </div>
     </div>
 
     <!-- Filtros -->
+    <!-- Pipeline visual -->
+    <div style="display:flex;align-items:center;gap:0;margin-bottom:20px;overflow-x:auto;padding-bottom:4px">
+      <div class="pipe-step" id="ps-pago" onclick="filtrar('pago')" style="border-color:var(--green)">
+        <div class="pipe-ico">✅</div><div class="pipe-lbl">Pago</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step" id="ps-confeccao" onclick="filtrar('confeccao')">
+        <div class="pipe-ico">🔨</div><div class="pipe-lbl">Em Confecção</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step" id="ps-pronto" onclick="filtrar('pronto')">
+        <div class="pipe-ico">📋</div><div class="pipe-lbl">Pronto</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step" id="ps-enviado" onclick="filtrar('enviado')">
+        <div class="pipe-ico">📦</div><div class="pipe-lbl">Enviado</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step" id="ps-finalizado" onclick="filtrar('finalizado')">
+        <div class="pipe-ico">🎉</div><div class="pipe-lbl">Finalizado</div>
+      </div>
+    </div>
+
     <div class="filtros">
       <button class="filtro-btn active" onclick="filtrar('')" id="f-todos">Todos</button>
-      <button class="filtro-btn" onclick="filtrar('pago')" id="f-pago">✅ Pagos</button>
-      <button class="filtro-btn" onclick="filtrar('pendente')" id="f-pendente">⏳ Pendentes</button>
-      <button class="filtro-btn" onclick="filtrar('producao')" id="f-producao">🔨 Em produção</button>
-      <button class="filtro-btn" onclick="filtrar('enviado')" id="f-enviado">📦 Enviados</button>
-      <button class="filtro-btn" onclick="filtrar('cancelado')" id="f-cancelado">❌ Cancelados</button>
+      <button class="filtro-btn" onclick="filtrar('pago')" id="f-pago">✅ Pago</button>
+      <button class="filtro-btn" onclick="filtrar('confeccao')" id="f-confeccao">🔨 Em Confecção</button>
+      <button class="filtro-btn" onclick="filtrar('pronto')" id="f-pronto">📋 Pronto</button>
+      <button class="filtro-btn" onclick="filtrar('enviado')" id="f-enviado">📦 Enviado</button>
+      <button class="filtro-btn" onclick="filtrar('finalizado')" id="f-finalizado">🎉 Finalizado</button>
+      <button class="filtro-btn" onclick="filtrar('cancelado')" id="f-cancelado">❌ Cancelado</button>
     </div>
 
     <!-- Tabela -->
@@ -299,9 +337,9 @@ async function carregarPedidos(){
 }
 
 function renderKpis(r){
-  document.getElementById('kTotal').textContent = r.total;
-  document.getElementById('kPagos').textContent = r.pagos;
-  document.getElementById('kPendentes').textContent = r.pendentes;
+  document.getElementById('kPagos').textContent = r.pagos || 0;
+  document.getElementById('kConfeccao').textContent = r.confeccao || 0;
+  document.getElementById('kProntos').textContent = r.prontos || 0;
   document.getElementById('kFaturamento').textContent =
     'R$ ' + (r.faturamento||0).toFixed(2).replace('.',',');
 }
@@ -337,9 +375,9 @@ function renderTabela(pedidos){
       <td class="total-txt">R$ ${(p.total||0).toFixed(2).replace('.',',')}</td>
       <td>
         <select class="status-sel" onchange="atualizarStatus('${p.numero}', this.value)">
-          <option value="novo"       ${p.status==='novo'       ?'selected':''}>🆕 Pedido Novo</option>
           <option value="pago"       ${p.status==='pago'       ?'selected':''}>✅ Pago</option>
           <option value="confeccao"  ${p.status==='confeccao'  ?'selected':''}>🔨 Em Confecção</option>
+          <option value="pronto"     ${p.status==='pronto'     ?'selected':''}>📋 Pronto</option>
           <option value="enviado"    ${p.status==='enviado'    ?'selected':''}>📦 Enviado</option>
           <option value="finalizado" ${p.status==='finalizado' ?'selected':''}>🎉 Finalizado</option>
           <option value="cancelado"  ${p.status==='cancelado'  ?'selected':''}>❌ Cancelado</option>
