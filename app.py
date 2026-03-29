@@ -291,7 +291,7 @@ def enviar_emails(pedido):
   </div>
   <p style="font-size:.85rem;color:#5A5040">
     Prazo de produção: <strong>3 a 5 dias úteis</strong> após confirmação.<br>
-    Dúvidas? WhatsApp: <strong>(43) 99690-5591</strong>
+    Dúvidas? WhatsApp: <strong>(43) 3432-3425</strong>
   </p>
   <p style="font-size:.8rem;color:#9A8870">Faça seu Carimbo — Jandaia do Sul/PR</p>
 </div>"""
@@ -398,11 +398,13 @@ def admin_pedidos():
     
     resumo = {
         "total": Pedido.query.filter(Pedido.status != "aguardando_pagamento").count(),
-        "pagos": Pedido.query.filter_by(status="pago").count(),
-        "pendentes": Pedido.query.filter(
-            Pedido.status.notin_(["aguardando_pagamento","pago","cancelado","finalizado"])
-        ).count(),
-        "faturamento": sum(p.total or 0 for p in Pedido.query.filter_by(status="pago").all()),
+        "pagos":     Pedido.query.filter_by(status="pago").count(),
+        "confeccao": Pedido.query.filter_by(status="confeccao").count(),
+        "prontos":   Pedido.query.filter_by(status="pronto").count(),
+        "enviados":  Pedido.query.filter_by(status="enviado").count(),
+        "faturamento": sum(p.total or 0 for p in Pedido.query.filter(
+            Pedido.status.notin_(["aguardando_pagamento","cancelado"])
+        ).all()),
     }
     
     return jsonify({"pedidos": pedidos, "resumo": resumo})
@@ -418,7 +420,7 @@ def admin_atualizar_status(numero):
         return jsonify({"erro":"não encontrado"}), 404
     novo_status = data.get("status", p.status)
     # Status válidos para carimbos
-    validos = ["novo","confeccao","enviado","finalizado","cancelado","pago","pendente"]
+    validos = ["pago","confeccao","pronto","enviado","finalizado","cancelado"]
     if novo_status in validos:
         p.status = novo_status
         db.session.commit()
