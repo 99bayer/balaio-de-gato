@@ -337,6 +337,11 @@ def _enviar_email(dest, subject, html):
     except Exception as e:
         print(f"Erro e-mail: {e}")
 
+# ── HEALTH CHECK (para UptimeRobot) ─────────────────────────────────────────
+@app.route("/ping")
+def ping():
+    return jsonify({"status": "ok", "uptime": True}), 200
+
 # ── ADMIN ───────────────────────────────────────────────────────────────────
 @app.route("/admin")
 def admin_login_page():
@@ -577,33 +582,23 @@ def admin_movel_deletar(mid):
 # ── Init ────────────────────────────────────────────────────────────────────
 with app.app_context():
     db.create_all()
-    # ── Migration: adicionar colunas novas ────────────────────────────────
+    # ── Migration rápida ──────────────────────────────────────────────────
     try:
         from sqlalchemy import text
-        migrações = [
-            ("movel",  "fotos_json",        "ALTER TABLE movel ADD COLUMN fotos_json TEXT"),
-            ("movel",  "vendido",            "ALTER TABLE movel ADD COLUMN vendido BOOLEAN DEFAULT FALSE"),
-            ("pedido", "whatsapp_cliente",   "ALTER TABLE pedido ADD COLUMN whatsapp_cliente VARCHAR(20)"),
-            ("pedido", "itens_json",         "ALTER TABLE pedido ADD COLUMN itens_json TEXT"),
-            ("pedido", "tinta",              "ALTER TABLE pedido ADD COLUMN tinta BOOLEAN DEFAULT FALSE"),
-        ]
         with db.engine.connect() as conn:
-            for tabela, coluna, sql in migrações:
-                try:
-                    # Verificar se coluna existe via information_schema
-                    existe = conn.execute(text(
-                        "SELECT COUNT(*) FROM information_schema.columns "
-                        f"WHERE table_name='{tabela}' AND column_name='{coluna}'"
-                    )).scalar()
-                    if not existe:
-                        conn.execute(text(sql))
-                        conn.commit()
-                        print(f"Migration: {tabela}.{coluna} criada")
-                except Exception as e_col:
-                    print(f"Migration skip {tabela}.{coluna}: {e_col}")
-        print("Migration concluída")
+            for sql in [
+                "ALTER TABLE movel ADD COLUMN IF NOT EXISTS fotos_json TEXT",
+                "ALTER TABLE movel ADD COLUMN IF NOT EXISTS vendido BOOLEAN DEFAULT FALSE",
+                "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS whatsapp_cliente VARCHAR(20)",
+                "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS itens_json TEXT",
+                "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS tinta BOOLEAN DEFAULT FALSE",
+            ]:
+                try: conn.execute(text(sql))
+                except Exception: pass
+            conn.commit()
+        print("Migration OK")
     except Exception as e:
-        print(f"Migration erro geral: {e}")
+        print(f"Migration: {e}")
 
 if __name__ == "__main__":
     app.run(debug=True, port=5002)
