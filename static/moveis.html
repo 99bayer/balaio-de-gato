@@ -159,6 +159,40 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .hero-stats{gap:20px;padding:10px 20px}
   .grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
 }
+
+/* ── Lightbox ── */
+.lightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:999;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.lightbox.open{display:flex}
+.lightbox-img{
+  max-width:90vw;max-height:85vh;object-fit:contain;
+  border-radius:8px;
+}
+.lightbox-nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,.15);border:none;color:#fff;
+  width:48px;height:48px;border-radius:50%;font-size:1.4rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.lightbox-nav:hover{background:rgba(255,255,255,.3)}
+.lightbox-prev{left:14px}
+.lightbox-next{right:14px}
+.lightbox-close{
+  position:absolute;top:14px;right:14px;
+  background:rgba(255,255,255,.15);border:none;color:#fff;
+  width:42px;height:42px;border-radius:50%;font-size:1.2rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.lightbox-close:hover{background:rgba(255,255,255,.3)}
+.lightbox-counter{
+  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,.6);font-size:.82rem;font-family:var(--font);
+  background:rgba(0,0,0,.4);padding:4px 12px;border-radius:20px;
+}
 </style>
 </head>
 <body>
