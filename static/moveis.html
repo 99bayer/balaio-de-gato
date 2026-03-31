@@ -312,10 +312,21 @@ function wpLink(m){
 // ── LIGHTBOX ─────────────────────────────────────────────────────────────────
 let lbFotos = [], lbIdx = 0;
 
+function abrirLightboxId(id){
+  lbFotos = fotosMap[id] || [];
+  if(!lbFotos.length) return;
+  lbIdx = 0;
+  mostrarLightbox();
+  document.getElementById('lightbox').classList.add('open');
+  document.addEventListener('keydown', lbTecla);
+}
+
 function abrirLightbox(el){
+  const id = el.dataset.id;
+  if(id){ abrirLightboxId(parseInt(id)); return; }
   lbFotos = JSON.parse(el.dataset.fotos || '[]');
   if(!lbFotos.length) return;
-  lbIdx = parseInt(el.dataset.cur || 0);
+  lbIdx = 0;
   mostrarLightbox();
   document.getElementById('lightbox').classList.add('open');
   document.addEventListener('keydown', lbTecla);
