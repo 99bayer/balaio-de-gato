@@ -336,7 +336,7 @@ function renderGrid(lista){
 
 function wpLink(m){
   const txt = encodeURIComponent(
-    `Olá! Vi o móvel *${m.nome}* (${brl(m.preco)}) no site do Balaio de Gato e tenho interesse. Ainda está disponível?`
+    `Olá! Vi o móvel *${m.nome}* no site do Balaio de Gato e tenho interesse. Ainda está disponível?`
   );
   return `https://wa.me/${WP}?text=${txt}`;
 }
