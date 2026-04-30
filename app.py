@@ -402,51 +402,66 @@ def admin_pedidos():
     from flask import session
     if not session.get("admin"):
         return jsonify({"erro":"não autorizado"}), 401
-    
-    status_filtro = request.args.get("status","")
-    q = Pedido.query.filter(Pedido.status != "aguardando_pagamento").order_by(Pedido.criado_em.desc())
-    if status_filtro:
-        q = q.filter_by(status=status_filtro)
-    
-    pedidos = []
-    for p in q.limit(100).all():
-        textos = json.loads(p.textos or "[]")
-        pedidos.append({
-            "id": p.id,
-            "numero": p.numero,
-            "status": p.status,
-            "tamanho": p.tamanho,
-            "categoria": p.categoria,
-            "textos": textos,
-            "tinta": getattr(p, 'tinta', False),
-            "end_nome": p.end_nome,
-            "end_email": p.end_email,
-            "end_tel": p.end_tel,
-            "end_cep": p.end_cep,
-            "end_rua": p.end_rua,
-            "end_comp": p.end_comp,
-            "end_bairro": p.end_bairro,
-            "end_cidade": p.end_cidade,
-            "whatsapp_cliente": getattr(p, "whatsapp_cliente", None) or "",
-            "frete_nome": p.frete_nome,
-            "frete_preco": p.frete_preco,
-            "total": p.total,
-            "pagamento": p.pagamento,
-            "criado_em": p.criado_em.strftime("%d/%m/%Y %H:%M") if p.criado_em else "",
-        })
-    
-    resumo = {
-        "total": Pedido.query.filter(Pedido.status != "aguardando_pagamento").count(),
-        "pagos":     Pedido.query.filter_by(status="pago").count(),
-        "confeccao": Pedido.query.filter_by(status="confeccao").count(),
-        "prontos":   Pedido.query.filter_by(status="pronto").count(),
-        "enviados":  Pedido.query.filter_by(status="enviado").count(),
-        "faturamento": sum(p.total or 0 for p in Pedido.query.filter(
-            Pedido.status.notin_(["aguardando_pagamento","cancelado"])
-        ).all()),
-    }
-    
-    return jsonify({"pedidos": pedidos, "resumo": resumo})
+    try:
+        status_filtro = request.args.get("status","")
+        q = Pedido.query.filter(Pedido.status != "aguardando_pagamento").order_by(Pedido.criado_em.desc())
+        if status_filtro:
+            q = q.filter_by(status=status_filtro)
+        
+        pedidos = []
+        for p in q.limit(100).all():
+            try:
+                textos = json.loads(p.textos or "[]")
+            except Exception:
+                textos = []
+            pedidos.append({
+                "id": p.id,
+                "numero": p.numero,
+                "status": p.status,
+                "tamanho": getattr(p, "tamanho", "") or "",
+                "categoria": getattr(p, "categoria", "") or "",
+                "textos": textos,
+                "tinta": getattr(p, "tinta", False) or False,
+                "end_nome": getattr(p, "end_nome", "") or "",
+                "end_email": getattr(p, "end_email", "") or "",
+                "end_tel": getattr(p, "end_tel", "") or "",
+                "end_cep": getattr(p, "end_cep", "") or "",
+                "end_rua": getattr(p, "end_rua", "") or "",
+                "end_comp": getattr(p, "end_comp", "") or "",
+                "end_bairro": getattr(p, "end_bairro", "") or "",
+                "end_cidade": getattr(p, "end_cidade", "") or "",
+                "whatsapp_cliente": getattr(p, "whatsapp_cliente", "") or "",
+                "frete_nome": getattr(p, "frete_nome", "") or "",
+                "frete_preco": getattr(p, "frete_preco", 0) or 0,
+                "total": getattr(p, "total", 0) or 0,
+                "pagamento": getattr(p, "pagamento", "") or "",
+                "criado_em": p.criado_em.strftime("%d/%m/%Y %H:%M") if p.criado_em else "",
+            })
+        
+        resumo = {
+            "total": 0, "pagos": 0, "confeccao": 0,
+            "prontos": 0, "enviados": 0, "faturamento": 0,
+        }
+        try:
+            resumo["total"]      = Pedido.query.filter(Pedido.status != "aguardando_pagamento").count()
+            resumo["pagos"]      = Pedido.query.filter_by(status="pago").count()
+            resumo["confeccao"]  = Pedido.query.filter_by(status="confeccao").count()
+            resumo["prontos"]    = Pedido.query.filter_by(status="pronto").count()
+            resumo["enviados"]   = Pedido.query.filter_by(status="enviado").count()
+            excluir = ["aguardando_pagamento", "cancelado"]
+            todos_fat = Pedido.query.all()
+            resumo["faturamento"] = sum(
+                getattr(p, "total", 0) or 0
+                for p in todos_fat
+                if p.status not in excluir
+            )
+        except Exception:
+            pass
+        
+        return jsonify({"pedidos": pedidos, "resumo": resumo})
+    except Exception as e:
+        import traceback
+        return jsonify({"erro": str(e), "trace": traceback.format_exc()}), 500
 
 @app.route("/api/admin/pedido/<numero>/status", methods=["POST"])
 def admin_atualizar_status(numero):
