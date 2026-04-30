@@ -401,7 +401,7 @@ def admin_pedidos():
             "end_comp": p.end_comp,
             "end_bairro": p.end_bairro,
             "end_cidade": p.end_cidade,
-            "whatsapp_cliente": p.whatsapp_cliente or "",
+            "whatsapp_cliente": getattr(p, "whatsapp_cliente", None) or "",
             "frete_nome": p.frete_nome,
             "frete_preco": p.frete_preco,
             "total": p.total,
@@ -599,6 +599,8 @@ with app.app_context():
             "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS whatsapp_cliente VARCHAR(20)",
             "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS itens_json TEXT",
             "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS tinta BOOLEAN DEFAULT FALSE",
+            "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS end_bairro VARCHAR(100)",
+            "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS end_cidade VARCHAR(100)",
         ]
         for sql in migrations:
             try:
