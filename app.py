@@ -355,7 +355,11 @@ def ping():
 # ── ADMIN ───────────────────────────────────────────────────────────────────
 @app.route("/admin")
 def admin_login_page():
-    return send_from_directory("static", "admin.html")
+    from flask import make_response
+    resp = make_response(send_from_directory("static", "admin.html"))
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 @app.route("/admin/login", methods=["POST"])
 def admin_login():
@@ -377,6 +381,21 @@ def admin_logout():
 def admin_check():
     from flask import session
     return jsonify({"logado": bool(session.get("admin"))})
+
+@app.route("/api/admin/dbtest")
+def admin_dbtest():
+    """Rota de diagnóstico — testa banco sem auth. Remover após debug."""
+    from sqlalchemy import text, inspect as sainspect
+    try:
+        with db.engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        # Lista colunas reais da tabela pedido
+        inspector = sainspect(db.engine)
+        cols_pedido = [c["name"] for c in inspector.get_columns("pedido")] if "pedido" in inspector.get_table_names() else []
+        cols_movel  = [c["name"] for c in inspector.get_columns("movel")]  if "movel"  in inspector.get_table_names() else []
+        return jsonify({"banco": "ok", "colunas_pedido": cols_pedido, "colunas_movel": cols_movel})
+    except Exception as e:
+        return jsonify({"banco": "erro", "detalhe": str(e)}), 500
 
 @app.route("/api/admin/pedidos")
 def admin_pedidos():
