@@ -12,7 +12,15 @@ if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+pg8000://", 1)
 elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+pg8000://", 1)
-app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+
+# Supabase requer SSL
+from sqlalchemy import create_engine
+if "supabase" in DATABASE_URL:
+    engine = create_engine(DATABASE_URL, connect_args={"ssl_context": True})
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"connect_args": {"ssl_context": True}}
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50MB por request
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
