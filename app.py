@@ -589,24 +589,28 @@ def admin_movel_deletar(mid):
 
 # ── Init ────────────────────────────────────────────────────────────────────
 with app.app_context():
-    db.create_all()
-    # ── Migration — cada comando isolado ─────────────────────────────────
     from sqlalchemy import text
-    migrations = [
-        "ALTER TABLE movel ADD COLUMN IF NOT EXISTS fotos_json TEXT",
-        "ALTER TABLE movel ADD COLUMN IF NOT EXISTS vendido BOOLEAN DEFAULT FALSE",
-        "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS whatsapp_cliente VARCHAR(20)",
-        "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS itens_json TEXT",
-        "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS tinta BOOLEAN DEFAULT FALSE",
-    ]
-    for sql in migrations:
-        try:
-            with db.engine.connect() as conn:
-                conn.execute(text(sql))
-                conn.commit()
-        except Exception as e:
-            print(f"Migration skip: {e}")
-    print("Migration OK")
+    try:
+        db.create_all()
+        # ── Migration — cada comando isolado ──────────────────────────────
+        migrations = [
+            "ALTER TABLE movel ADD COLUMN IF NOT EXISTS fotos_json TEXT",
+            "ALTER TABLE movel ADD COLUMN IF NOT EXISTS vendido BOOLEAN DEFAULT FALSE",
+            "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS whatsapp_cliente VARCHAR(20)",
+            "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS itens_json TEXT",
+            "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS tinta BOOLEAN DEFAULT FALSE",
+        ]
+        for sql in migrations:
+            try:
+                with db.engine.connect() as conn:
+                    conn.execute(text(sql))
+                    conn.commit()
+            except Exception as e:
+                print(f"Migration skip: {e}")
+        print("Migration OK")
+    except Exception as e:
+        print(f"ERRO ao conectar ao banco na inicializacao: {e}")
+        print("App continuando sem migracao — verifique DATABASE_URL e SSL")
 
 if __name__ == "__main__":
     app.run(debug=True, port=5002)
