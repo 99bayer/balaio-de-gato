@@ -23,6 +23,8 @@ if "supabase" in DATABASE_URL:
 
 app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50MB por request
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = True  # HTTPS no Render
 db = SQLAlchemy(app)
 
 # Mercado Pago
@@ -370,6 +372,11 @@ def admin_logout():
     from flask import session
     session.pop("admin", None)
     return jsonify({"ok": True})
+
+@app.route("/api/admin/check")
+def admin_check():
+    from flask import session
+    return jsonify({"logado": bool(session.get("admin"))})
 
 @app.route("/api/admin/pedidos")
 def admin_pedidos():
