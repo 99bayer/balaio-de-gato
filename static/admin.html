@@ -537,16 +537,15 @@ function renderFotosPreview(){
 }
 
 async function salvarMovel(){
-  const nome  = document.getElementById('mv-nome').value.trim();
-  const preco = document.getElementById('mv-preco').value;
-  if(!nome || !preco){ showToast('Preencha nome e preço'); return; }
+  const nome = document.getElementById('mv-nome').value.trim();
+  if(!nome){ showToast('Preencha o nome do móvel'); return; }
 
   // 1. Criar o móvel sem fotos primeiro
   const r = await fetch('/api/admin/moveis', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      nome, preco: parseFloat(preco),
+      nome,
       descricao: document.getElementById('mv-desc').value.trim(),
       condicao:  document.getElementById('mv-cond').value,
       fotos: [],
@@ -570,7 +569,6 @@ async function salvarMovel(){
 
     showToast('✅ Móvel salvo!');
     document.getElementById('mv-nome').value = '';
-    document.getElementById('mv-preco').value = '';
     document.getElementById('mv-desc').value = '';
     fotosBase64 = []; renderFotosPreview();
     carregarMoveis();
@@ -598,7 +596,7 @@ async function carregarMoveis(){
         ${m.fotos&&m.fotos.length>1?`<div style="font-size:.6rem;color:var(--gr);text-align:center">📷 ${m.fotos.length}</div>`:''}
       </td>
       <td style="font-weight:600;font-size:.88rem">${m.nome}</td>
-      <td style="font-weight:700;color:var(--ink)">${brl(m.preco)}</td>
+
       <td>
         <span class="badge ${m.condicao==='novo'?'pago':'pendente'}">${m.condicao==='novo'?'Novo':'Usado'}</span>
       </td>
@@ -648,10 +646,7 @@ async function deletarMovel(id, nome){
         <label style="font-size:.72rem;color:var(--gr);font-weight:700;display:block;margin-bottom:4px">Nome do móvel *</label>
         <input id="mv-nome" type="text" class="status-sel" style="width:100%;padding:10px 12px;font-size:.88rem" placeholder="Ex: Sofá 3 lugares, Mesa de jantar...">
       </div>
-      <div>
-        <label style="font-size:.72rem;color:var(--gr);font-weight:700;display:block;margin-bottom:4px">Preço (R$) *</label>
-        <input id="mv-preco" type="number" class="status-sel" style="width:100%;padding:10px 12px;font-size:.88rem" placeholder="Ex: 850">
-      </div>
+
     </div>
     <div style="margin-bottom:12px">
       <label style="font-size:.72rem;color:var(--gr);font-weight:700;display:block;margin-bottom:4px">Descrição</label>
@@ -679,7 +674,7 @@ async function deletarMovel(id, nome){
   <div style="font-size:.72rem;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Móveis cadastrados</div>
   <div class="tabela-wrap">
     <table class="tabela">
-      <thead><tr><th>Foto</th><th>Nome</th><th>Preço</th><th>Condição</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Foto</th><th>Nome</th><th>Condição</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
       <tbody id="tabelaMoveis"><tr><td colspan="7" class="loading">Carregando...</td></tr></tbody>
     </table>
   </div>
