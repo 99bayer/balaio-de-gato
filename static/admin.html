@@ -294,6 +294,19 @@ let filtroAtual = '';
 let todosPedidos = [];
 
 // ── LOGIN ────────────────────────────────────────────────────────────────────
+// Verifica sessão ao carregar a página
+(async function verificarSessao(){
+  try {
+    const r = await fetch('/api/admin/check');
+    const d = await r.json();
+    if(d.logado){
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('adminWrap').style.display = 'block';
+      carregarPedidos();
+    }
+  } catch(e){}
+})();
+
 async function fazerLogin(){
   const senha = document.getElementById('senhaInput').value;
   if(!senha) return;
