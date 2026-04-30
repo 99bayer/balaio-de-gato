@@ -437,7 +437,7 @@ class Movel(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
     nome        = db.Column(db.String(150), nullable=False)
     descricao   = db.Column(db.Text, nullable=True)
-    preco       = db.Column(db.Float, nullable=False)
+    preco       = db.Column(db.Float, nullable=True, default=0.0)
     condicao    = db.Column(db.String(10), default="usado")  # novo/usado
     fotos_json  = db.Column(db.Text, nullable=True)  # JSON array de base64
     vendido     = db.Column(db.Boolean, default=False)
@@ -517,15 +517,15 @@ def admin_movel_criar():
     if not session.get("admin"):
         return jsonify({"erro": "não autorizado"}), 401
     data = request.get_json() or {}
-    if not data.get("nome") or not data.get("preco"):
-        return jsonify({"erro": "nome e preco obrigatórios"}), 400
+    if not data.get("nome"):
+        return jsonify({"erro": "nome obrigatório"}), 400
     fotos = data.get("fotos", [])
     if data.get("foto") and not fotos:
         fotos = [data["foto"]]
     m = Movel(
         nome      = data["nome"].strip(),
         descricao = data.get("descricao","").strip(),
-        preco     = float(data["preco"]),
+        preco     = float(data["preco"]) if data.get("preco") else 0.0,
         condicao  = data.get("condicao","usado"),
         fotos_json = json.dumps(fotos, ensure_ascii=False),
     )
@@ -582,23 +582,23 @@ def admin_movel_deletar(mid):
 # ── Init ────────────────────────────────────────────────────────────────────
 with app.app_context():
     db.create_all()
-    # ── Migration rápida ──────────────────────────────────────────────────
-    try:
-        from sqlalchemy import text
-        with db.engine.connect() as conn:
-            for sql in [
-                "ALTER TABLE movel ADD COLUMN IF NOT EXISTS fotos_json TEXT",
-                "ALTER TABLE movel ADD COLUMN IF NOT EXISTS vendido BOOLEAN DEFAULT FALSE",
-                "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS whatsapp_cliente VARCHAR(20)",
-                "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS itens_json TEXT",
-                "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS tinta BOOLEAN DEFAULT FALSE",
-            ]:
-                try: conn.execute(text(sql))
-                except Exception: pass
-            conn.commit()
-        print("Migration OK")
-    except Exception as e:
-        print(f"Migration: {e}")
+    # ── Migration — cada comando isolado ─────────────────────────────────
+    from sqlalchemy import text
+    migrations = [
+        "ALTER TABLE movel ADD COLUMN IF NOT EXISTS fotos_json TEXT",
+        "ALTER TABLE movel ADD COLUMN IF NOT EXISTS vendido BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS whatsapp_cliente VARCHAR(20)",
+        "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS itens_json TEXT",
+        "ALTER TABLE pedido ADD COLUMN IF NOT EXISTS tinta BOOLEAN DEFAULT FALSE",
+    ]
+    for sql in migrations:
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(text(sql))
+                conn.commit()
+        except Exception as e:
+            print(f"Migration skip: {e}")
+    print("Migration OK")
 
 if __name__ == "__main__":
     app.run(debug=True, port=5002)
